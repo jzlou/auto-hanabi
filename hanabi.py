@@ -35,7 +35,8 @@ class Hanabi:
         self.hands = np.zeros((self.n_players, self.n_heldcards), dtype=np.int)
         # deal as a human would, one card at a time to each player
         for card_idx in range(self.n_heldcards):
-            self.hands[:, card_idx] = self.deal(self.n_players)
+            for hand_idx in range(self.n_players):
+                self.hands[hand_idx, card_idx] = self.deal_card()
 
         self.print_hands()
 
@@ -43,10 +44,14 @@ class Hanabi:
         while True:
             self.__next__()
 
-    def deal(self, n_cards):
-        dealt_cards = self.deck[:n_cards]
-        self.deck = self.deck[n_cards:]
-        return dealt_cards
+    def deal_card(self):
+        if self.deck.size:
+            card = self.deck[1]
+            self.deck = self.deck[1:]
+        else:
+            # deck is empty, only happens when player has no turns left anyways
+            card = -1
+        return card
             
     def __next__(self):
         # TODO add clue giving and discarding
@@ -65,8 +70,7 @@ class Hanabi:
                 self.discards = np.array([played_card])
             
         # return a new dealt card to the index that the played card was in
-        # TODO handle end of game when no new cards? - only happens when player has no turns left anyways
-        self.hands[self.curr_player][play_card_idx] = self.deal(1)
+        self.hands[self.curr_player][play_card_idx] = self.deal_card()
 
         if self.bombs >= 3:
             self.game_over()

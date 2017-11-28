@@ -19,7 +19,7 @@ class Hanabi:
 
     def __init__(self, players):
         # init game state
-        self.table = np.zeros((5, ))
+        self.table = np.zeros((5, ), dtype=int)
         self.score = 0
         self.clues = 8
         self.bombs = 0
@@ -76,6 +76,7 @@ class Hanabi:
     
     def game_over(self):
         self.score = np.sum(self.table)
+        print(table2string(self.table))
         print('GAME OVER! FINAL SCORE: {0}'.format(self.score))
         sys.exit(0)
 
@@ -115,11 +116,25 @@ def cards2string(cards):
         cards2string = ''
         for card in cards:
             cards2string += card2string(card) + ', '
+        cards2string = cards2string[:-2]
     return cards2string
 
 
 def card2string(card):
-    return '{0: <6} {1}'.format(color(card), number(card))
+    return '{0: >6} {1}'.format(color(card), number(card))
+
+
+def table2string(table):
+    string = ''
+    for number in range(1, 6):
+        for color_idx in range(5):
+            if table[color_idx] >= number:
+                string += '{0: >6} {1}, '.format(COLORS[color_idx], number)
+            else:
+                string += '        , '
+        string = string[:-2] + '\n'
+    return string
+
 
 
 h = Hanabi([PlaysLeftPlayer(player_idx) for player_idx in range(4)])

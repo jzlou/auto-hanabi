@@ -28,11 +28,22 @@ class Hanabi:
             for hand_idx in range(self.n_players):
                 self.hands[hand_idx, card_idx] = self.deal_card()
 
-        disp.print_hands(self)
+        # print(disp.hands2string(self))
+        return
+
+    def play(self):
 
         # play game
         while True:
             self.__next__()
+
+            if self.bombs >= 3:
+                break
+
+            self.curr_player = np.mod(self.curr_player, self.n_players)
+
+        self.game_over()
+        return self.score
 
     def deal_card(self):
         if self.deck.size:
@@ -47,8 +58,6 @@ class Hanabi:
         # TODO add clue giving and discarding
         play_card_idx = self.players[self.curr_player].play_card()
         played_card = self.hands[self.curr_player][play_card_idx]
-        print(self.curr_player)
-        print(played_card)
         if util.number(played_card) == self.table[util.color_idx(played_card)] + 1:
             self.table[util.color_idx(played_card)] += 1
             self.score = np.sum(self.table)
@@ -61,15 +70,10 @@ class Hanabi:
             
         # return a new dealt card to the index that the played card was in
         self.hands[self.curr_player][play_card_idx] = self.deal_card()
-
-        if self.bombs >= 3:
-            self.game_over()
-        
-        self.curr_player = np.mod(self.curr_player, self.n_players)
         return
     
     def game_over(self):
         self.score = np.sum(self.table)
-        print(disp.table2string(self.table))
-        print('GAME OVER! FINAL SCORE: {0}'.format(self.score))
-        sys.exit(0)
+        # print(disp.table2string(self.table))
+        # print('GAME OVER! FINAL SCORE: {0}'.format(self.score))
+        return

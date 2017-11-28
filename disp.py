@@ -4,13 +4,13 @@ import util
 def cards2string(cards):
     if cards.size < 2:
         card = cards
-        cards2string = card2string(card)
+        string = card2string(card)
     else:
-        cards2string = ''
+        string = ''
         for card in cards:
-            cards2string += card2string(card) + ', '
-        cards2string = cards2string[:-2]
-    return cards2string
+            string += card2string(card) + ', '
+        string = string[:-2]
+    return string
 
 
 def card2string(card):
@@ -30,13 +30,12 @@ def table2string(table):
 
 
 # printing functions
-def print_hands(hanabi):
+def hands2string(hanabi):
+    string = ''
     for player_idx in range(hanabi.n_players):
-        print_hand(hanabi, player_idx)
-    return
+        string += hand2string(hanabi, player_idx) + '\n'
+    return string[:-1]
 
 
-def print_hand(hanabi, player_idx):
-    cards = hanabi.hands[player_idx, :]
-    print('{0}: {1}'.format(player_idx, cards2string(cards)))
-    return
+def hand2string(hanabi, player_idx):
+    return '{0}: {1}'.format(player_idx, cards2string(hanabi.hands[player_idx, :]))

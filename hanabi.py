@@ -1,17 +1,7 @@
 import numpy as np
 import sys
-
-COLORS = np.array(["red", "white", "blue", "green", "yellow"])
-NUMBERS = np.array([1, 1, 1, 2, 2, 3, 3, 4, 4, 5])
-
-
-class PlaysLeftPlayer:
-    def __init__(self, player_idx):
-        self.player_idx = player_idx
-        return
-
-    def play_card(self):
-        return 0
+import util
+import disp
 
 
 # class that instantiates a hanabi game
@@ -38,7 +28,7 @@ class Hanabi:
             for hand_idx in range(self.n_players):
                 self.hands[hand_idx, card_idx] = self.deal_card()
 
-        self.print_hands()
+        disp.print_hands(self)
 
         # play game
         while True:
@@ -59,8 +49,8 @@ class Hanabi:
         played_card = self.hands[self.curr_player][play_card_idx]
         print(self.curr_player)
         print(played_card)
-        if number(played_card) == self.table[color_idx(played_card)] + 1:
-            self.table[color_idx(played_card)] += 1
+        if util.number(played_card) == self.table[util.color_idx(played_card)] + 1:
+            self.table[util.color_idx(played_card)] += 1
             self.score = np.sum(self.table)
         else:
             self.bombs += 1
@@ -80,65 +70,6 @@ class Hanabi:
     
     def game_over(self):
         self.score = np.sum(self.table)
-        print(table2string(self.table))
+        print(disp.table2string(self.table))
         print('GAME OVER! FINAL SCORE: {0}'.format(self.score))
         sys.exit(0)
-
-    # printing functions
-    def print_hands(self):
-        for player_idx in range(self.n_players):
-            self.print_hand(player_idx)
-        return
-
-    def print_hand(self, player_idx):
-        cards = self.hands[player_idx, :]
-        print('{0}: {1}'.format(player_idx, cards2string(cards)))
-        return
-
-
-def color(card):
-    return COLORS[color_idx(card)]
-
-
-def color_idx(card):
-    return np.floor(card/10).astype(int)
-
-
-def number(card):
-    return NUMBERS[number_idx(card)]
-
-
-def number_idx(card):
-    return np.mod(card, 10).astype(int)
-
-
-def cards2string(cards):
-    if cards.size < 2:
-        card = cards
-        cards2string = card2string(card)
-    else:
-        cards2string = ''
-        for card in cards:
-            cards2string += card2string(card) + ', '
-        cards2string = cards2string[:-2]
-    return cards2string
-
-
-def card2string(card):
-    return '{0: >6} {1}'.format(color(card), number(card))
-
-
-def table2string(table):
-    string = ''
-    for number in range(1, 6):
-        for color_idx in range(5):
-            if table[color_idx] >= number:
-                string += '{0: >6} {1}, '.format(COLORS[color_idx], number)
-            else:
-                string += '        , '
-        string = string[:-2] + '\n'
-    return string
-
-
-
-h = Hanabi([PlaysLeftPlayer(player_idx) for player_idx in range(4)])

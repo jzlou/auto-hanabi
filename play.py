@@ -1,20 +1,6 @@
 from hanabi import Hanabi
 import numpy as np
-
-
-class PlaysLeftPlayer:
-    def __init__(self, player_idx):
-        self.player_idx = player_idx
-        self.last_idx_played = -1
-        return
-
-    def play_card(self):
-        self.last_idx_played = 0
-        return self.last_idx_played
-
-    def get_card(self):
-        return 0
-
+from player.playsleft import PlaysLeftPlayer
 
 n_trials = 10000
 scores = np.zeros((n_trials, ), dtype=int)

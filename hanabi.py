@@ -54,35 +54,50 @@ class Hanabi:
 
             self.info.curr_player_idx = np.mod(self.info.curr_player_idx + 1, self.info.n_players)
 
-        return self.score
+        return self.info.score
+            
+    def __next__(self):
+        action = self.players[self.info.curr_player_idx].play_turn(self.info)
+        if action[0] is 'play' or action[0] is 'discard':
+            card_idx = action[1]
+            card = self.hands[self.info.curr_player_idx][card_idx]
+            self.hands[self.info.curr_player_idx] = np.concatenate((np.delete(self.hands[self.info.curr_player_idx], card_idx), np.array([-1])))
+            if action[0] is 'play':
+                self.play_card(card)
+            elif action[0] is 'discard':
+                self.discard_card(card)
+            # pick up new card
+            if self.deck.size:
+                self.hands[self.info.curr_player_idx][-1] = self.deal_card()
+                self.players[self.info.curr_player_idx].get_card()
+        elif action[0] is 'clue':
+            # TODO give clue
+            pass
+
+        return
+
+    def play_card(self, card):
+        if util.number(card) == self.info.table[util.color_idx(card)] + 1:
+            self.info.table[util.color_idx(card)] += 1
+            self.info.score = np.sum(self.info.table)
+            if util.number(card) == 5:
+                self.info.clues += 1
+        else:
+            self.info.bombs += 1
+            self.discard_card(card)
+        return
+
+    def discard_card(self, card):
+        if self.info.discards.size:
+            self.info.discards = np.concatenate((self.info.discards, np.array([card])))
+        else:
+            self.info.discards = np.array([card])
+        return
 
     def deal_card(self):
         card = self.deck[1]
         self.deck = self.deck[1:]
         return card
-            
-    def __next__(self):
-        # TODO add clue giving and discarding
-        play_card_idx = self.players[self.info.curr_player_idx].play_turn(self.info)
-        played_card = self.hands[self.info.curr_player_idx][play_card_idx]
-        self.hands[self.info.curr_player_idx] = np.concatenate((np.delete(self.hands[self.info.curr_player_idx], play_card_idx), np.array([-1])))
-        if util.number(played_card) == self.info.table[util.color_idx(played_card)] + 1:
-            self.info.table[util.color_idx(played_card)] += 1
-            self.score = np.sum(self.info.table)
-            if util.number(played_card) == 5:
-                self.info.clues += 1
-        else:
-            self.info.bombs += 1
-            if self.discards.size:
-                self.discards = np.concatenate((self.discards, np.array([played_card])))
-            else:
-                self.discards = np.array([played_card])
-
-        if self.deck.size:
-            self.hands[self.info.curr_player_idx][-1] = self.deal_card()
-            self.players[self.info.curr_player_idx].get_card()
-
-        return
     
     def game_over(self):
         self.info.score = np.sum(self.info.table)

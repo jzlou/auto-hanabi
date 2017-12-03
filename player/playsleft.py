@@ -1,4 +1,6 @@
 import player.clues
+import util
+import numpy as np
 
 
 class PlaysLeftPlayer:
@@ -6,6 +8,7 @@ class PlaysLeftPlayer:
         self.n_heldcards = info.n_heldcards
         self.player_idx = player_idx
         self.last_idx_played = -1
+        self.card_infos = np.repeat(util.CARD_NOINFO[np.newaxis, ...], self.n_heldcards, 0)
         return
 
     def play_turn(self, info):
@@ -19,4 +22,7 @@ class PlaysLeftPlayer:
         return 0
 
     def get_clue(self, clue):
+        return
+
+    def get_info(self, info, visible_hands):
         return

@@ -98,6 +98,9 @@ class Hanabi:
         card = self.deck[1]
         self.deck = self.deck[1:]
         return card
+
+    def visible(self, player_idx):
+
     
     def game_over(self):
         self.info.score = np.sum(self.info.table)

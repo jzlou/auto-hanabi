@@ -1,5 +1,6 @@
 import player.clues
 
+
 class PlaysLeftPlayer:
     def __init__(self, player_idx, info):
         self.n_heldcards = info.n_heldcards

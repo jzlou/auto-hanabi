@@ -4,28 +4,39 @@ import util
 import disp
 
 
-# class that instantiates a hanabi game
-class Hanabi:
+# class that stores public information about hanabi game
+class HanabiPublicInfo:
+    def __init__(self, n_players):
+        self.n_players = n_players
+        assert(2 <= self.n_players <= 5)
+        self.n_heldcards = 4 if self.n_players >= 4 else 5
 
-    def __init__(self, players):
         # init game state
         self.table = np.zeros((5, ), dtype=int)
         self.score = 0
         self.clues = 8
         self.bombs = 0
-        self.curr_player = 0
-        self.deck = np.random.permutation(50)
+        self.curr_player_idx = 0
         self.discards = np.array([])
 
-        # init players and hands
-        self.n_players = len(players)
-        assert(2 <= self.n_players <= 5)
-        self.players = players
-        self.n_heldcards = 4 if self.n_players >= 4 else 5
-        self.hands = np.zeros((self.n_players, self.n_heldcards), dtype=np.int)
+        self.curr_player_idx = np.random.randint(0, self.n_players)
+        return
+
+
+# class that simulates a hanabi game
+class Hanabi:
+
+    def __init__(self, n_players, player_obj):
+        self.info = HanabiPublicInfo(n_players)
+
+        # shuffle deck
+        self.deck = np.random.permutation(50)
+        # init players
+        self.players = [player_obj(player_idx, self.info) for player_idx in range(self.info.n_players)]
         # deal as a human would, one card at a time to each player
-        for card_idx in range(self.n_heldcards):
-            for hand_idx in range(self.n_players):
+        self.hands = np.zeros((self.info.n_players, self.info.n_heldcards), dtype=np.int)
+        for card_idx in range(self.info.n_heldcards):
+            for hand_idx in range(self.info.n_players):
                 self.hands[hand_idx, card_idx] = self.deal_card()
 
         # print(disp.hands2string(self))
@@ -37,43 +48,44 @@ class Hanabi:
         while True:
             self.__next__()
 
-            if self.bombs >= 3:
+            if self.info.bombs >= 3 or np.all(self.info.table == 5):
+                self.game_over()
                 break
 
-            self.curr_player = np.mod(self.curr_player, self.n_players)
+            self.info.curr_player_idx = np.mod(self.info.curr_player_idx + 1, self.info.n_players)
 
-        self.game_over()
         return self.score
 
     def deal_card(self):
-        if self.deck.size:
-            card = self.deck[1]
-            self.deck = self.deck[1:]
-        else:
-            # deck is empty, only happens when player has no turns left anyways
-            card = -1
+        card = self.deck[1]
+        self.deck = self.deck[1:]
         return card
             
     def __next__(self):
         # TODO add clue giving and discarding
-        play_card_idx = self.players[self.curr_player].play_card()
-        played_card = self.hands[self.curr_player][play_card_idx]
-        if util.number(played_card) == self.table[util.color_idx(played_card)] + 1:
-            self.table[util.color_idx(played_card)] += 1
-            self.score = np.sum(self.table)
+        play_card_idx = self.players[self.info.curr_player_idx].play_turn(self.info)
+        played_card = self.hands[self.info.curr_player_idx][play_card_idx]
+        self.hands[self.info.curr_player_idx] = np.concatenate((np.delete(self.hands[self.info.curr_player_idx], play_card_idx), np.array([-1])))
+        if util.number(played_card) == self.info.table[util.color_idx(played_card)] + 1:
+            self.info.table[util.color_idx(played_card)] += 1
+            self.score = np.sum(self.info.table)
+            if util.number(played_card) == 5:
+                self.info.clues += 1
         else:
-            self.bombs += 1
+            self.info.bombs += 1
             if self.discards.size:
                 self.discards = np.concatenate((self.discards, np.array([played_card])))
             else:
                 self.discards = np.array([played_card])
-            
-        # return a new dealt card to the index that the played card was in
-        self.hands[self.curr_player][play_card_idx] = self.deal_card()
+
+        if self.deck.size:
+            self.hands[self.info.curr_player_idx][-1] = self.deal_card()
+            self.players[self.info.curr_player_idx].get_card()
+
         return
     
     def game_over(self):
-        self.score = np.sum(self.table)
+        self.info.score = np.sum(self.info.table)
         # print(disp.table2string(self.table))
         # print('GAME OVER! FINAL SCORE: {0}'.format(self.score))
         return

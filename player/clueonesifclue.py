@@ -15,7 +15,7 @@ class ClueOnesIfClue:
         if info.clues > 0:
             # clue next player where lowest value cards are
             next_player_rel_idx = 0
-            clue_hint = util.number_idx(np.min(visible_hands[next_player_rel_idx, ...]))
+            clue_hint = np.min(util.number_idx(visible_hands[next_player_rel_idx, ...]))
             clue_type = 'number'
             clue = (next_player_rel_idx, clue_type, clue_hint)
             action = ('clue', clue)

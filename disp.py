@@ -75,7 +75,7 @@ def counters2string(info):
 
 
 def counters2string_short(info):
-    return '{0} Clues  {1} Bombs  {2} Deck Size'.format(info.clues, info.bombs, info.deck_size)
+    return '{0} Clues  {1} Fuse  {2} Deck Size'.format(info.clues, info.fuse, info.deck_size)
 
 
 def hanabi2str_short(hanabi):
@@ -104,4 +104,14 @@ def clue2str(clue_type, player_idx, card_idxs, clue_hint):
         string = color_clue2str(player_idx, card_idxs, clue_hint)
     else:
         string = number_clue2str(player_idx, card_idxs, clue_hint)
+    return string
+
+
+def play2str(player_idx, card_idx, card):
+    string = 'Player {} plays card [{}], a {} {}'.format(player_idx, card_idx, util.color(card), util.number(card))
+    return string
+
+
+def invalid_play2str(card):
+    string = 'A {} {} is not playable, fuse reduced'.format(util.color(card), util.number(card))
     return string

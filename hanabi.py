@@ -16,7 +16,7 @@ class HanabiPublicInfo:
         self.table = np.zeros((5, ), dtype=int)
         self.score = 0
         self.clues = util.MAX_CLUES
-        self.bombs = 0
+        self.fuse = 3
         self.curr_player_idx = 0
         self.discards = util.CARD_BLANK
         self.deck_size = util.N_CARDS
@@ -46,15 +46,16 @@ class Hanabi:
 
     def play(self):
 
+        logging.debug('Start Game')
+
         # play game
         while True:
-
-            logging.debug('Start Game')
             logging.debug(disp.hanabi2str_short(self))
 
             self.__next__()
 
-            if self.info.bombs >= 3 or np.all(self.info.table == 5):
+            if self.info.fuse == 0 or np.all(self.info.table == 5):
+                logging.debug(disp.hanabi2str_short(self))
                 self.game_over()
                 break
 
@@ -65,10 +66,11 @@ class Hanabi:
     def __next__(self):
         action = self.players[self.info.curr_player_idx].play_turn(self.info, self.visible_hands(self.info.curr_player_idx))
         if action[0] is 'play' or action[0] is 'discard':
-            card_idx = action[1]
+            card_idx = action[1][0]
             card = self.hands[self.info.curr_player_idx][card_idx]
             self.hands[self.info.curr_player_idx] = np.concatenate((np.delete(self.hands[self.info.curr_player_idx], card_idx), np.array([-1])))
             if action[0] is 'play':
+                logging.debug(disp.play2str(self.info.curr_player_idx, card_idx, card))
                 self.play_card(card)
             elif action[0] is 'discard':
                 self.info.clues = np.minimum(self.info.clues + 1, util.MAX_CLUES)
@@ -109,7 +111,8 @@ class Hanabi:
             if util.number(card) == 5:
                 self.info.clues = np.minimum(self.info.clues + 1, util.MAX_CLUES)
         else:
-            self.info.bombs += 1
+            logging.debug(disp.invalid_play2str(card))
+            self.info.fuse -= 1
             self.discard_card(card)
         return
 

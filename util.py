@@ -1,7 +1,7 @@
 import numpy as np
 
-COLORS = np.array(["red", "white", "blue", "green", "yellow"])
-COLORS_SHORT = np.array(["r", "w", "b", "g", "y"])
+COLORS = np.array(["blue", "green", "red", "white", "yellow"])
+COLORS_SHORT = np.array(["b", "g", "r", "w", "y"])
 # must start at 1, contain at least one of each integer to max
 NUMBERS = np.array([1, 1, 1, 2, 2, 3, 3, 4, 4, 5], np.int8)
 MAX_NUMBER = np.max(NUMBERS)

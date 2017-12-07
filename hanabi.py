@@ -13,12 +13,12 @@ class HanabiPublicInfo:
         self.n_heldcards = 4 if self.n_players >= 4 else 5
 
         # init game state
-        self.table = np.zeros((5, ), dtype=int)
+        self.table = np.zeros((util.N_UNIQUE_NUMBERS, ), dtype=int)
         self.score = 0
         self.clues = util.MAX_CLUES
         self.fuse = 3
         self.curr_player_idx = 0
-        self.discards = util.CARD_BLANK
+        self.discards = np.copy(util.CARD_ZEROS)
         self.deck_size = util.N_CARDS
 
         self.curr_player_idx = np.random.randint(0, self.n_players)
@@ -89,11 +89,14 @@ class Hanabi:
             clue_type = clue[1]
             clue_hint = clue[2]
             if clue_type is 'color':
-                card_idxs = np.where(util.color_idx(self.hands[player_idx, :]) == clue_hint)[0]
+                card_idxs = np.where(util.color(self.hands[player_idx, :]) is clue_hint)[0]
             elif clue_type is 'number':
-                card_idxs = np.where(util.number_idx(self.hands[player_idx, :]) == clue_hint)[0]
+                card_idxs = np.where(util.number(self.hands[player_idx, :]) == clue_hint)[0]
             else:
                 logging.error('Invalid clue type given ({})'.format(clue_type))
+                return
+            if not card_idxs.size:
+                logging.error('Invalid clue given: No {}s in Player {}\'s hand'.format(clue_hint, player_idx))
                 return
 
             logging.debug(disp.clue2str(clue_type, player_idx, card_idxs, clue_hint) + '\n')
@@ -127,7 +130,7 @@ class Hanabi:
         return card
 
     def visible_hands(self, player_idx):
-        return self.hands[np.arange(self.info.n_players) != player_idx, ...]
+        return np.roll(self.hands[np.arange(self.info.n_players) != player_idx, ...], -player_idx, 0)
     
     def game_over(self):
         self.info.score = np.sum(self.info.table)

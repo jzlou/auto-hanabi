@@ -5,6 +5,7 @@ from player.clueonesifclue import ClueOnesIfClue
 import logging
 import sys
 
+# logging.basicConfig(filename='hanabi.log', filemode='w', level=logging.DEBUG, format='%(message)s')
 logging.basicConfig(filename='hanabi.log', filemode='w', level=logging.DEBUG, format='%(message)s')
 log = logging.getLogger()
 log.setLevel(logging.DEBUG)
@@ -16,6 +17,7 @@ log.addHandler(ch)
 # but also save output to log
 
 n_trials = 1
+np.random.seed(0)
 scores = np.zeros((n_trials, ), dtype=int)
 for nn in range(n_trials):
     h = Hanabi(4, ClueOnesIfClue)

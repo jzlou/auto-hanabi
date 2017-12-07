@@ -71,7 +71,7 @@ def hand2string_short(hanabi, player_idx):
 
 
 def counters2string(info):
-    return '{0} Now Playing  {1} Clues  {2} Bombs  {3} Deck Size'.format(info.curr_player_idx, info.clues, info.bombs, info.deck_size)
+    return '{0} Now Playing  {1} Clues  {2} Bombs  {3} Deck'.format(info.curr_player_idx, info.clues, info.bombs, info.deck_size)
 
 
 def counters2string_short(info):

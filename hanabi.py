@@ -7,6 +7,7 @@ import logging
 
 # class that stores public information about hanabi game
 class HanabiPublicInfo:
+    # TODO figure out how to make these only editable in this script
     def __init__(self, n_players):
         self.n_players = n_players
         assert(2 <= self.n_players <= 5)
@@ -20,6 +21,7 @@ class HanabiPublicInfo:
         self.curr_player_idx = 0
         self.discards = np.copy(util.CARD_ZEROS)
         self.deck_size = util.N_CARDS
+        self.eog_turns_left = self.n_players
 
         self.curr_player_idx = np.random.randint(0, self.n_players)
         return
@@ -54,7 +56,10 @@ class Hanabi:
 
             self.__next__()
 
-            if self.info.fuse == 0 or np.all(self.info.table == 5):
+            if self.info.deck_size == 0:
+                self.info.eog_turns_left -= 1
+
+            if self.info.fuse == 0 or np.all(self.info.table == 5) or self.info.eog_turns_left < 0:
                 logging.debug(disp.hanabi2str_short(self))
                 self.game_over()
                 break
@@ -73,12 +78,17 @@ class Hanabi:
                 logging.debug(disp.play2str(self.info.curr_player_idx, card_idx, card))
                 self.play_card(card)
             elif action[0] is 'discard':
+                logging.debug(disp.discard2str(self.info.curr_player_idx, card_idx, card))
                 self.info.clues = np.minimum(self.info.clues + 1, util.MAX_CLUES)
                 self.discard_card(card)
             # pick up new card
-            if self.deck.size:
-                self.hands[self.info.curr_player_idx][-1] = self.deal_card()
-                self.players[self.info.curr_player_idx].get_card()
+            dealt_card = self.deal_card()
+            self.hands[self.info.curr_player_idx][-1] = dealt_card
+
+            for player_idx in range(self.info.n_players):
+                self.players[player_idx].get_action(action, self.info)
+                self.players[self.info.curr_player_idx].get_card(self.info.curr_player_idx, dealt_card)
+
         elif action[0] is 'clue':
             if self.info.clues <= 0:
                 logging.error('Clue given when no clues remaining')
@@ -86,25 +96,35 @@ class Hanabi:
             self.info.clues -= 1
             clue = action[1]
             player_idx = util.player_idx_rel2glob(self.info.curr_player_idx, clue[0], self.info.n_players)
+            self.verify_clue(clue)
             clue_type = clue[1]
             clue_hint = clue[2]
-            if clue_type is 'color':
-                card_idxs = np.where(util.color(self.hands[player_idx, :]) is clue_hint)[0]
-            elif clue_type is 'number':
-                card_idxs = np.where(util.number(self.hands[player_idx, :]) == clue_hint)[0]
-            else:
-                logging.error('Invalid clue type given ({})'.format(clue_type))
-                return
-            if not card_idxs.size:
-                logging.error('Invalid clue given: No {}s in Player {}\'s hand'.format(clue_hint, player_idx))
-                return
+            card_idxs = clue[3]
 
             logging.debug(disp.clue2str(clue_type, player_idx, card_idxs, clue_hint) + '\n')
-            self.players[player_idx].get_clue(card_idxs, clue_hint)
-            pass
         else:
             logging.error('Invalid action: {}'.format(action[0]))
 
+        for player_idx in range(self.info.n_players):
+            self.players[player_idx].get_action(action, self.info)
+
+        return
+
+    def verify_clue(self, clue):
+        player_idx = util.player_idx_rel2glob(clue[0], self.info.curr_player_idx, self.info.n_players)
+        clue_type = clue[1]
+        clue_hint = clue[2]
+        card_idxs = clue[3]
+        if clue_type is 'color':
+            true_card_idxs = np.where(util.color(self.hands[player_idx, :]) is clue_hint)[0]
+        elif clue_type is 'number':
+            true_card_idxs = np.where(util.number(self.hands[player_idx, :]) == clue_hint)[0]
+        else:
+            logging.error('Invalid clue type given ({})'.format(clue_type))
+            sys.exit()
+        if not np.array_equal(np.sort(card_idxs), np.sort(true_card_idxs)):
+            logging.error('Invalid clue given: Card indices ({}) do not match true card indices ({})'.format(clue_hint, player_idx))
+            sys.exit()
         return
 
     def play_card(self, card):
@@ -124,9 +144,12 @@ class Hanabi:
         return
 
     def deal_card(self):
-        card = self.deck[1]
-        self.deck = self.deck[1:]
-        self.info.deck_size -= 1
+        if self.deck.size:
+            card = self.deck[0]
+            self.deck = self.deck[1:]
+            self.info.deck_size -= 1
+        else:
+            card = -1
         return card
 
     def visible_hands(self, player_idx):

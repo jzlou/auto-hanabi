@@ -50,3 +50,7 @@ def next_player(player_idx, n_players):
 
 def player_idx_rel2glob(rel_idx, player_idx, n_players):
     return np.mod(player_idx + 1 + rel_idx, n_players)
+
+
+def player_idx_glob2rel(glob_idx, player_idx, n_players):
+    return np.mod(glob_idx - player_idx, n_players) - 1

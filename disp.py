@@ -62,11 +62,11 @@ def hands2string_short(hanabi):
 
 
 def hand2string(hanabi, player_idx):
-    return '{0}: {1}'.format(player_idx, cards2string(hanabi.hands[player_idx, :]))
+    return '{0}: {1}'.format(player_idx, cards2string(np.flipud(hanabi.hands[player_idx, :])))
 
 
 def hand2string_short(hanabi, player_idx):
-    hand = hanabi.hands[player_idx, ...]
+    hand = np.flipud(hanabi.hands[player_idx, ...])
     return '{0}: {1}'.format(player_idx, '[%s]' % ', '.join(map(str, [card2string_short(card) for card in hand])))
 
 
@@ -109,6 +109,11 @@ def clue2str(clue_type, player_idx, card_idxs, clue_hint):
 
 def play2str(player_idx, card_idx, card):
     string = 'Player {} plays card [{}], a {} {}'.format(player_idx, card_idx, util.color(card), util.number(card))
+    return string
+
+
+def discard2str(player_idx, card_idx, card):
+    string = 'Player {} discards card [{}], a {} {}'.format(player_idx, card_idx, util.color(card), util.number(card))
     return string
 
 

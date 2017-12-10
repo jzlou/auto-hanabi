@@ -12,6 +12,13 @@ class ClueOnesIfClue:
         self.card_infos = np.repeat(util.CARD_NOINFO[np.newaxis, ...], self.n_heldcards, 0)
         self.card_clues = np.repeat(util.CARD_NOINFO[np.newaxis, ...], self.n_heldcards, 0)
         self.card_odds = np.repeat(util.CARD_ZEROS[np.newaxis, ...], self.n_heldcards, 0)
+        self.visible_cards = np.copy(util.CARD_ZEROS)
+        return
+
+    def init_game(self, visible_hands):
+        for hand_idx in range(visible_hands.shape[0]):
+            for card in visible_hands[hand_idx, ...]:
+                self.visible_cards[(util.number_idx(card), util.color_idx(card))] += 1
         return
 
     def play_turn(self, info, visible_hands):
@@ -59,16 +66,19 @@ class ClueOnesIfClue:
     def get_card(self, player_idx, card):
         glob_player_idx = util.player_idx_rel2glob(player_idx, card, self.n_players)
         player_idx = util.player_idx_glob2rel(glob_player_idx, self.player_idx, self.n_players)
-
         if player_idx == -1:
             self.card_infos[-1, ...] = util.CARD_NOINFO
             self.card_odds = norm_hand(self.card_infos)
             self.n_heldcards += 1
+        else:
+            self.visible_cards[(util.number_idx(card), util.color_idx(card))] += 1
 
         return
 
     def get_action(self, action, info):
         if action[0] is 'play' or action[0] is 'discard':
+            if info.curr_player_idx == -1:
+                self.visible_cards[(util.number_idx(action[1]), util.color_idx(action[1]))] += 1
             pass
         elif action[0] is 'clue':
             clue = action[1]
@@ -78,6 +88,7 @@ class ClueOnesIfClue:
             clue_hint = clue[2]
             card_idxs = clue[3]
 
+            # if clue is given to "me"
             if player_idx == -1:
                 clue_info = np.copy(util.CARD_ZEROS)
                 if clue_type is 'color':
@@ -134,7 +145,13 @@ def get_max_color_scores(discards):
     return max_color_scores
 
 
-def visible_hands2card_info(visible_hands):
+def visible_hands2card_info(info, visible_hands):
     visible_cards_info = np.copy(util.CARD_ZEROS)
-    visible_cards_info[(util.number_idx(visible_hands), util.color_idx(visible_hands))] = 1
+    for color_idx in range(util.N_COLORS):
+        visible_cards_info[:info.table[color_idx], color_idx] = 1
+    for hand_idx in range(visible_cards_info.shape[0]):
+        for card in visible_cards_info[hand_idx, ...]:
+            visible_cards_info[(util.number_idx(card), util.color_idx(card))] += 1
+    for card in info.discards:
+        visible_cards_info[(util.number_idx(card), util.color_idx(card))] += 1
     return

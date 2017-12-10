@@ -49,6 +49,10 @@ class Hanabi:
     def play(self):
 
         logging.debug('Start Game')
+        logging.debug(disp.hanabi2str_short(self))
+
+        for player_idx in range(self.info.n_players):
+            self.players[player_idx].init_game(self.visible_hands(player_idx))
 
         # play game
         while True:
@@ -85,7 +89,7 @@ class Hanabi:
             dealt_card = self.deal_card()
             self.hands[self.info.curr_player_idx][-1] = dealt_card
 
-            for player_idx in range(self.info.n_players):
+            for player_idx in np.arange(self.info.n_players)[np.where(np.arange(self.info.n_players) != self.info.curr_player_idx)[0]]:
                 self.players[player_idx].get_action(action, self.info)
                 self.players[self.info.curr_player_idx].get_card(self.info.curr_player_idx, dealt_card)
 

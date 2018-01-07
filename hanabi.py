@@ -143,9 +143,9 @@ class Hanabi:
         else:
             self.n_fuses -= 1
             self.discards[util.number_idx(card), util.color_idx(card)] += 1
-            for player_idx in range(self.n_players):
-                rel_player_idx = util.player_idx_glob2rel(self.curr_player_idx, player_idx, self.n_players)
-                self.players[player_idx].invalid_card_played(rel_player_idx, card_idx, card, self.n_fuses)
+            for tell_player_idx in range(self.n_players):
+                rel_player_idx = util.player_idx_glob2rel(self.curr_player_idx, tell_player_idx, self.n_players)
+                self.players[tell_player_idx].invalid_card_played(rel_player_idx, card_idx, card, self.n_fuses)
 
         logging.debug(disp.play2str(self.curr_player_idx, card_idx, card))
         self.deal_card(self.curr_player_idx)
@@ -162,9 +162,9 @@ class Hanabi:
         self.discards[util.number_idx(card), util.color_idx(card)] += 1
 
         # tell players
-        for player_idx in range(self.n_players):
-            rel_player_idx = util.player_idx_glob2rel(self.curr_player_idx, player_idx, self.n_players)
-            self.players[player_idx].card_discarded(rel_player_idx, card_idx, card, self.n_clues)
+        for tell_player_idx in range(self.n_players):
+            rel_player_idx = util.player_idx_glob2rel(self.curr_player_idx, tell_player_idx, self.n_players)
+            self.players[tell_player_idx].card_discarded(rel_player_idx, card_idx, card, self.n_clues)
 
         logging.debug(disp.discard2str(self.curr_player_idx, card_idx, card))
         self.deal_card(self.curr_player_idx)
@@ -178,9 +178,13 @@ class Hanabi:
             self.n_cards[player_idx] += 1
             self.hands[player_idx, self.n_cards[player_idx] - 1] = card
             # tell players
-            for player_idx in range(self.n_players):
-                rel_player_idx = util.player_idx_glob2rel(player_idx, player_idx, self.n_players)
-                self.players[player_idx].card_dealt(rel_player_idx, self.n_cards[player_idx], card)
+            for tell_player_idx in range(self.n_players):
+                if tell_player_idx == player_idx:
+                    rel_player_idx = 0
+                    self.players[tell_player_idx].card_dealt(rel_player_idx, self.n_cards[player_idx], [])
+                else:
+                    rel_player_idx = util.player_idx_glob2rel(player_idx, tell_player_idx, self.n_players)
+                    self.players[tell_player_idx].card_dealt(rel_player_idx, self.n_cards[player_idx], card)
         return
 
     def visible_hands(self, player_idx):

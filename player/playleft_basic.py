@@ -118,26 +118,28 @@ class PlayLeftBasic:
             Relative index of the player who received the clue.
         card_idxs : array of int
             Hand indexes of the cards being informed about.
-        clue_type : {'', ''}
-            Card index of the discarded card.
+        clue_type : {'number', 'color'}
+            Type of clue given.
         clue_idx : int
-            Number of clues remaining after card was discarded.
+            Index for given clue type.
 
         """
         return
 
+    #TODO to i really need to include card_idx? must be a rule that always dealt to right
     def card_dealt(self, player_idx, card_idx, card):
-        r"""Play a turn by telling game object your action.
+        r"""Learn that a card was dealt.
 
-        Player chooses what action to take and on what cards or what clue to give to whom. Main logic for a player
-        ruleset.
+        Even when this player is dealt a card, the game lets all players know of a deal.
 
-        Returns
+        Parameters
         ----------
-        action : tuple
-            Action tuple, where first element is string description {'play', 'discard', 'clue'} and second element is
-            action metadata. If 'play' or 'discard', second element is card index. If 'clue', second element is a tuple
-            itself of (clue_type, clue_hint, card_idxs).
+        player_idx : int
+            Relative index of the player who was dealt a card.
+        card_idx : int
+            Hand index to where card was dealt.
+        card : int or empty
+            Card index of the dealt card, or empty if this player got the new card.
 
         """
         return

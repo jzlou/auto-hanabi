@@ -24,19 +24,33 @@ def card2string_short(card):
 
 def table2string(table):
     string = ''
-    for number in range(1, util.MAX_NUMBER+1):
+    for number_idx in range(util.N_NUMBERS):
         for color_idx in range(util.N_COLORS):
-            if table[color_idx] >= number:
-                string += '{0: >6} {1}, '.format(util.COLORS[color_idx], number)
+            if table[number_idx, color_idx]:
+                string += '{0: >6} {1}, '.format(util.UNIQUE_COLORS[color_idx], util.UNIQUE_NUMBERS[number_idx])
             else:
                 string += '        , '
-        string = string[:-2] + '\n'
+        string += '\n'
     return string
 
 
-def table2string_short(table):
-    string = ' ' + np.array2string(util.COLORS_SHORT, formatter={'all': lambda x: "%3s" % x})[1:-1] + ' \n'
-    string += np.array2string(table, formatter={'all': lambda x: "%3i" % x})
+def fulltable2string_short(hanabi):
+    string = '   TABLE' + ' ' * (util.N_COLORS*3 - 5) + '   DISCARDS \n   '
+    for double in range(2):
+        for color_idx in range(util.N_COLORS):
+            string += ' ' + util.COLORS_SHORT[color_idx] + ' '
+        string += '   '
+    string += ' \n\n'
+    for number_idx in range(util.N_NUMBERS):
+        string += '{}  '.format(util.UNIQUE_NUMBERS[number_idx])
+        for color_idx in range(util.N_COLORS):
+            string += '{0: >2} '.format(hanabi.table[number_idx, color_idx])
+        string += '   '
+        for color_idx in range(util.N_COLORS):
+            string += '{0: >2} '.format(hanabi.discards[number_idx, color_idx])
+
+        string += '\n'
+    print(string)
     return string
 
 
@@ -50,13 +64,13 @@ def hands2string(hanabi):
 
 def hands2string_short(hanabi):
     string = ''
-    for player_idx in range(hanabi.info.n_players):
+    for player_idx in range(hanabi.n_players):
         hand_str = hand2string_short(hanabi, player_idx)
-        if player_idx==hanabi.info.curr_player_idx:
+        if player_idx==hanabi.curr_player_idx:
             string += '>' + hand_str + '<'
         else:
             string += ' ' + hand_str + ' '
-        if player_idx!=hanabi.info.n_players:
+        if player_idx!=hanabi.n_players:
             string += '\n'
     return string
 
@@ -74,12 +88,12 @@ def counters2string(info):
     return '{0} Now Playing  {1} Clues  {2} Bombs  {3} Deck'.format(info.curr_player_idx, info.clues, info.bombs, info.deck_size)
 
 
-def counters2string_short(info):
-    return '{0} Clues  {1} Fuse  {2} Deck Size'.format(info.clues, info.fuse, info.deck_size)
+def counters2string_short(hanabi):
+    return '{0} Clues  {1} Fuse  {2} Deck Size'.format(hanabi.n_clues, hanabi.n_fuses, hanabi.n_undealt)
 
 
 def hanabi2str_short(hanabi):
-    string = '\n{0}\n{1}\n\n{2}\n'.format(hands2string_short(hanabi), counters2string_short(hanabi.info), table2string_short(hanabi.info.table))
+    string = '\n{0}\n{1}\n\n{2}\n'.format(hands2string_short(hanabi), counters2string_short(hanabi), fulltable2string_short(hanabi))
     return string
 
 

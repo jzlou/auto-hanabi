@@ -134,3 +134,8 @@ def discard2str(player_idx, card_idx, card):
 def invalid_play2str(card):
     string = 'A {} {} is not playable, fuse reduced'.format(util.color(card), util.number(card))
     return string
+
+
+def card_dealt2str(player_idx, card):
+    string = 'A {} {} is dealt to Player {}'.format(util.color(card), util.number(card), player_idx)
+    return string

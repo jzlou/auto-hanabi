@@ -126,20 +126,20 @@ class PlayLeftBasic:
         """
         return
 
-    #TODO to i really need to include card_idx? must be a rule that always dealt to right
-    def card_dealt(self, player_idx, card_idx, card):
+    def card_dealt(self, player_idx, card, n_cards):
         r"""Learn that a card was dealt.
 
-        Even when this player is dealt a card, the game lets all players know of a deal.
+        Even when this player is dealt a card, the game lets all players know of a deal. Card is always dealt to the
+        right-most position, with all other cards shifting left.
 
         Parameters
         ----------
         player_idx : int
             Relative index of the player who was dealt a card.
-        card_idx : int
-            Hand index to where card was dealt.
         card : int or empty
             Card index of the dealt card, or empty if this player got the new card.
+        n_cards : int
+            Number of cards in receiving player's hand after card was dealt.
 
         """
         return

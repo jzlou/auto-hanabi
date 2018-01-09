@@ -42,7 +42,7 @@ def number_idx(card):
 
 
 def card2info(card):
-    card_info = np.zeros((N_NUMBERS, N_COLORS))
+    card_info = np.copy(CARD_ZEROS)
     card_info[color_idx(card), number_idx(card)] = 1
     return card_info
 

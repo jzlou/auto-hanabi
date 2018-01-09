@@ -180,11 +180,15 @@ class Hanabi:
             # tell players
             for tell_player_idx in range(self.n_players):
                 if tell_player_idx == player_idx:
-                    rel_player_idx = 0
-                    self.players[tell_player_idx].card_dealt(rel_player_idx, self.n_cards[player_idx], [])
+                    rel_player_idx = -1
+                    self.n_cards[player_idx]
+                    self.players[tell_player_idx].card_dealt(rel_player_idx, [], self.n_cards[player_idx])
                 else:
+                    self.n_cards[player_idx]
                     rel_player_idx = util.player_idx_glob2rel(player_idx, tell_player_idx, self.n_players)
-                    self.players[tell_player_idx].card_dealt(rel_player_idx, self.n_cards[player_idx], card)
+                    self.players[tell_player_idx].card_dealt(rel_player_idx, card, self.n_cards[player_idx])
+            logging.debug(disp.card_dealt2str(player_idx, card))
+
         return
 
     def visible_hands(self, player_idx):

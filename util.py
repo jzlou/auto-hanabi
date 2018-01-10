@@ -15,10 +15,10 @@ N_CARDS = N_CARDS_PER_COLOR * N_CARDS_PER_NUMBER
 
 CARD_NOINFO = np.repeat(COUNT_NUMBERS[:, np.newaxis], N_COLORS, 1)
 CARD_ZEROS = np.zeros((N_NUMBERS, N_COLORS), np.int8)
-CARD_ONES = np.ones((N_CARDS_PER_COLOR, N_COLORS), np.int8)
+CARD_ONES = np.ones((N_NUMBERS, N_COLORS), np.int8)
 
 MAX_CLUES = 8
-MAX_FUSES = 40
+MAX_FUSES = 3
 
 
 def color_short(card):
@@ -43,7 +43,7 @@ def number_idx(card):
 
 def card2info(card):
     card_info = np.copy(CARD_ZEROS)
-    card_info[color_idx(card), number_idx(card)] = 1
+    card_info[number_idx(card), color_idx(card)] = 1
     return card_info
 
 

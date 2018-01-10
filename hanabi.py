@@ -109,9 +109,9 @@ class Hanabi:
         clue_hint = clue_info[2]
         card_idxs = clue_info[3]
         if clue_type is 'color':
-            true_card_idxs = np.where(util.color(self.hands[player_idx, :]) == clue_hint)[0]
+            true_card_idxs = np.where(util.color_idx(self.hands[player_idx, :]) == clue_hint)[0]
         elif clue_type is 'number':
-            true_card_idxs = np.where(util.number(self.hands[player_idx, :]) == clue_hint)[0]
+            true_card_idxs = np.where(util.number_idx(self.hands[player_idx, :]) == clue_hint)[0]
         else:
             logging.error('Invalid clue type given ({})'.format(clue_type))
         if not np.array_equal(np.sort(card_idxs), np.sort(true_card_idxs)):

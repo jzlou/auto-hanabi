@@ -22,10 +22,10 @@ class PlayLeft:
         self.n_fuses = util.MAX_FUSES
         self.n_clues = util.MAX_CLUES
         self.n_undealts = util.N_CARDS
-        self.hands = np.repeat(util.CARD_ZEROS[np.newaxis, np.newaxis, ...], self.n_players, self.n_handcards, 1)
-        self.clued_hands = np.repeat(util.CARD_ZEROS[np.newaxis, np.newaxis, ...], self.n_players, self.n_handcards, 1)
-        self.info_hands = np.repeat(util.CARD_ZEROS[np.newaxis, np.newaxis, ...], self.n_players, self.n_handcards, 1)
-        self.odds_hands = np.repeat(util.CARD_ZEROS[np.newaxis, np.newaxis, ...], self.n_players, self.n_handcards, 1)
+        self.hands = np.tile(util.CARD_ZEROS[np.newaxis, np.newaxis, ...], (self.n_players, self.n_handcards, 1, 1))
+        self.clued_hands = np.tile(util.CARD_ZEROS[np.newaxis, np.newaxis, ...], (self.n_players, self.n_handcards, 1, 1))
+        self.info_hands = np.tile(util.CARD_ZEROS[np.newaxis, np.newaxis, ...], (self.n_players, self.n_handcards, 1, 1))
+        self.odds_hands = np.tile(util.CARD_ZEROS[np.newaxis, np.newaxis, ...], (self.n_players, self.n_handcards, 1, 1))
         self.n_cards = np.zeros((self.n_players, ), np.int)
         self.table = np.copy(util.CARD_ZEROS)
         self.discards = np.copy(util.CARD_ZEROS)
@@ -177,10 +177,55 @@ class PlayLeft:
         self.n_cards[player_idx] += 1
         assert(self.n_cards[player_idx] == n_cards)
         if player_idx == -1 or player_idx == self.n_players:
-            self.hands[player_idx][self.n_cards[player_idx] - 1, ...] = util.CARD_NOINFO - self.table - self.discards - np.sum(self.hands[:self.n_players - 1][self.n_cards[player_idx] - 1, ...])
+            self.hands[player_idx][self.n_cards[player_idx] - 1, ...] = cards_possible(self.table, self.discards, self.hands[:-1, ...])
         else:
-            self.hands[player_idx][self.n_cards[player_idx] - 1, ...] = util.card2info(card)
+            card_info = util.card2info(card)
+            self.hands[player_idx][self.n_cards[player_idx] - 1, ...] = card_info
+            self.hands[-1][:self.n_cards[player_idx], ...] -= card_info
         return
 
-    def cards_possible(self):
-        util.CARD_NOINFO - self.table - self.discards - np.sum(self.hands[:self.n_players - 1, :, ...])
+
+def cards_possible(table, discards, hands):
+    return util.CARD_NOINFO - table - discards - np.sum(hands, axis=(0, 1))
+
+
+def norm_hand(hand):
+    norm = np.sum(hand, (1, 2))[:, np.newaxis, np.newaxis]
+    norm[np.where(norm == 0)[0]] = 1
+    hand = hand / norm
+    return hand
+
+
+def get_playable_cards(table):
+    playable_cards = np.copy(util.CARD_ZEROS)
+    for color_idx in range(util.N_COLORS):
+        if table[color_idx] < util.N_NUMBERS:
+            playable_cards[table[color_idx], color_idx] = 1
+    return playable_cards
+
+
+def get_discardable_cards(info):
+    discardable_cards = get_useless_cards(info)
+    for color_idx in range(util.N_COLORS):
+        if info.table[color_idx] < util.N_NUMBERS:
+            discardable_cards[info.table[color_idx], color_idx] = 1
+    return discardable_cards
+
+
+def get_useless_cards(info):
+    useless_cards = np.copy(util.CARD_ONES)
+    max_color_scores = get_max_color_scores(info.discards)
+    for color_idx in range(util.N_COLORS):
+        useless_cards[info.table[color_idx]:max_color_scores[color_idx], color_idx] = 0
+    return useless_cards
+
+
+def get_max_color_scores(discards):
+    # TODO figure out when not enough turns to play remaining cards
+    cards_left = np.copy(util.CARD_NOINFO) - discards
+    max_color_scores = util.MAX_NUMBER * np.ones((util.N_COLORS, ), np.int8)
+    for color_idx in range(util.N_COLORS):
+        zero_inds = np.where(cards_left[:, color_idx] == 0)[0]
+        if zero_inds.size:
+            max_color_scores[color_idx] = np.min(zero_inds)
+    return max_color_scores

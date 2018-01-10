@@ -124,6 +124,7 @@ class PlayLeftBasic:
             Index for given clue type.
 
         """
+        self.n_clues -= 1
         return
 
     def card_dealt(self, player_idx, card, n_cards):

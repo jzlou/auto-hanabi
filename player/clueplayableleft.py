@@ -80,7 +80,7 @@ class CluePlayableLeft:
         if self.n_clues > 0 and action_odds < .5:
             # clue next player where lowest value cards are
             next_player_rel_idx = 0
-            clue_hint = np.min(util.number_idx(self.hands[next_player_rel_idx, ...]))
+            clue_hint = np.where(np.sum(self.hands[next_player_rel_idx, ...], axis=(0, 2)))[0][0]
             clue_type = 'number'
             clue_idxs = np.where(np.sum(self.hands[next_player_rel_idx, :, clue_hint, :], axis=1))[0]
             clue = (next_player_rel_idx, clue_type, clue_hint, clue_idxs)
@@ -107,10 +107,7 @@ class CluePlayableLeft:
         """
         self.discards += util.card2info(card)
         self.n_fuses = n_fuses
-        keep_inds = np.where(np.arange(self.n_cards[player_idx]) != card_idx)[0]
-        self.n_cards[player_idx] -= 1
-        self.hands[player_idx][:self.n_cards[player_idx], ...] = self.hands[player_idx][keep_inds, ...]
-        self.hands[player_idx][self.n_cards[player_idx], ...] = util.CARD_ZEROS
+        self.reduce_hand(player_idx, card_idx)
         return
 
     def valid_card_played(self, player_idx, card_idx, card, n_clues):
@@ -132,10 +129,7 @@ class CluePlayableLeft:
         """
         self.table += util.card2info(card)
         self.n_clues = n_clues
-        keep_inds = np.where(np.arange(self.n_cards[player_idx]) != card_idx)[0]
-        self.n_cards[player_idx] -= 1
-        self.hands[player_idx][:self.n_cards[player_idx], ...] = self.hands[player_idx][keep_inds, ...]
-        self.hands[player_idx][self.n_cards[player_idx], ...] = util.CARD_ZEROS
+        self.reduce_hand(player_idx, card_idx)
         return
 
     def card_discarded(self, player_idx, card_idx, card, n_clues):
@@ -157,10 +151,7 @@ class CluePlayableLeft:
         """
         self.discards += util.card2info(card)
         self.n_clues = n_clues
-        keep_inds = np.where(np.arange(self.n_cards[player_idx]) != card_idx)[0]
-        self.n_cards[player_idx] -= 1
-        self.hands[player_idx][:self.n_cards[player_idx], ...] = self.hands[player_idx][keep_inds, ...]
-        self.hands[player_idx][self.n_cards[player_idx], ...] = util.CARD_ZEROS
+        self.reduce_hand(player_idx, card_idx)
         return
 
     def clue_given(self, player_idx, to_player_idx, card_idxs, clue_type, clue_idx):
@@ -223,6 +214,15 @@ class CluePlayableLeft:
             card_info = util.card2info(card)
             self.hands[player_idx][self.n_cards[player_idx] - 1, ...] = card_info
             self.hands[-1][:self.n_cards[player_idx], ...] -= card_info
+        return
+
+    def reduce_hand(self, player_idx, card_idx):
+        keep_inds = np.where(np.arange(self.n_cards[player_idx]) != card_idx)[0]
+        self.n_cards[player_idx] -= 1
+        self.hands[player_idx][:self.n_cards[player_idx], ...] = self.hands[player_idx][keep_inds, ...]
+        self.hands[player_idx][self.n_cards[player_idx], ...] = util.CARD_ZEROS
+        self.clues_hands[player_idx][:self.n_cards[player_idx], ...] = self.clues_hands[player_idx][keep_inds, ...]
+        self.clues_hands[player_idx][self.n_cards[player_idx], ...] = util.CARD_ONES
         return
 
 

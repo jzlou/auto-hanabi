@@ -25,8 +25,6 @@ class Hanabi:
         self.eog_turns_left = self.n_players
         self.cheating = False
 
-        self.curr_player_idx = np.random.randint(0, self.n_players)
-
         # shuffle deck
         self.deck = np.random.permutation(util.N_CARDS)
         # init players
@@ -51,7 +49,6 @@ class Hanabi:
 
         # play game
         while True:
-            logging.debug(disp.hanabi2str_short(self))
 
             self.__next__()
 
@@ -63,7 +60,8 @@ class Hanabi:
                 self.game_over()
                 break
 
-            self.curr_player_idx = util.next_player(self.curr_player_idx, self.n_players)
+            self.next_player()
+            logging.debug(disp.hanabi2str_short(self))
 
         return self.score
             
@@ -108,6 +106,9 @@ class Hanabi:
         clue_type = clue_info[1]
         clue_hint = clue_info[2]
         card_idxs = clue_info[3]
+        if not card_idxs.size:
+            logging.error('Invalid clue given: At least one card must be clued'.format(clue_hint, player_idx))
+            return False
         if clue_type is 'color':
             true_card_idxs = np.where(util.color_idx(self.hands[player_idx, :]) == clue_hint)[0]
         elif clue_type is 'number':
@@ -181,10 +182,8 @@ class Hanabi:
             for tell_player_idx in range(self.n_players):
                 if tell_player_idx == player_idx:
                     rel_player_idx = -1
-                    self.n_cards[player_idx]
                     self.players[tell_player_idx].card_dealt(rel_player_idx, [], self.n_cards[player_idx])
                 else:
-                    self.n_cards[player_idx]
                     rel_player_idx = util.player_idx_glob2rel(player_idx, tell_player_idx, self.n_players)
                     self.players[tell_player_idx].card_dealt(rel_player_idx, card, self.n_cards[player_idx])
             logging.debug(disp.card_dealt2str(player_idx, card))
@@ -201,4 +200,8 @@ class Hanabi:
 
     def gain_clue(self):
         self.n_clues = np.minimum(self.n_clues + 1, util.MAX_CLUES)
+        return
+
+    def next_player(self):
+        self.curr_player_idx = util.next_player(self.curr_player_idx, self.n_players)
         return

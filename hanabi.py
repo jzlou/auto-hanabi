@@ -194,8 +194,8 @@ class Hanabi:
         return np.roll(self.hands[np.arange(self.n_players) != player_idx, ...], -player_idx, 0)
     
     def game_over(self):
-        print(disp.table2string(self.table))
-        print('GAME OVER! FINAL SCORE: {0}'.format(self.score))
+        logging.debug(disp.table2string(self.table))
+        logging.debug('GAME OVER! FINAL SCORE: {0}'.format(self.score))
         return
 
     def gain_clue(self):

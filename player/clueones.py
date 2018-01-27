@@ -3,7 +3,7 @@ import util
 import numpy as np
 
 
-class CluePlayableLeft:
+class ClueOnes:
     def __init__(self, n_players, n_handcards):
         r"""Initialize a player.
 
@@ -63,15 +63,38 @@ class CluePlayableLeft:
             itself of (clue_type, clue_hint, card_idxs).
 
         """
+
+        if self.n_clues > 0:
+            is_one = np.sum(self.hands[:-1, ...], axis=3)[..., 0] > 0
+            is_known_one = np.sum(np.sum(self.clues_hands[:-1, ...], axis=3)[..., 1:], axis=2) == 0
+            is_cluable_one = np.logical_and(is_one, np.logical_not(is_known_one))
+            if np.any(is_cluable_one):
+                clue_type = 'number'
+                player_idx = np.where(np.sum(is_cluable_one, axis=1))[0][0]
+                clue_idxs = np.where(is_one[player_idx, ...])[0]
+                clue = (player_idx, clue_type, 0, clue_idxs)
+                action = ('clue', clue)
+                return action
+
+            is_known_color = np.sum(np.sum(self.clues_hands[:-1, ...], axis=2)>0, axis=2) == 1
+            is_cluable_color = np.logical_and(is_one, np.logical_not(is_known_color))
+            # clue player about color of their ones if they don't know
+            if np.any(is_cluable_color):
+                clue_type = 'color'
+                player_idx = np.where(np.sum(is_cluable_color, axis=1))[0][0]
+                clue_hint = np.where(np.sum(self.hands[player_idx, np.where(is_cluable_color[player_idx, :])[0][0], ...], axis=0))[0][0]
+                clue_idxs = np.where(np.sum(self.hands[player_idx, :, :, clue_hint], axis=1))[0]
+                clue = (player_idx, clue_type, clue_hint, clue_idxs)
+                action = ('clue', clue)
+                return action
+
         # determine card index to play
         playable_cards = get_playable_cards(self.table)
-        discardable_cards = get_discardable_cards(self.table, self.discards)
         useless_cards = get_useless_cards(self.table, self.discards)
         hand_odds = norm_hand(self.hands[-1, ...]*self.clues_hands[-1, ...])
         odds_playable = np.sum(playable_cards[np.newaxis, ...] * hand_odds, (2, 1))
-        odds_discardable = np.sum(discardable_cards[np.newaxis, ...] * hand_odds, (2, 1))
         odds_useless = np.sum(useless_cards[np.newaxis, ...] * hand_odds, (2, 1))
-        if np.max(odds_playable) >= np.max(odds_useless):
+        if np.max(odds_playable) == 1:
             card_idx = np.argmax(odds_playable)
             action = ('play', card_idx)
             action_odds = odds_playable[card_idx]
@@ -79,19 +102,6 @@ class CluePlayableLeft:
             card_idx = np.argmax(odds_useless)
             action = ('discard', card_idx)
             action_odds = odds_useless[card_idx]
-        if self.n_clues > 0:
-            # clue next player where a playable card is
-            clue_hint = np.where(np.sum(self.hands[next_player_rel_idx, ...], axis=(0, 2)))[0][0]
-            clue_type = 'number'
-            for hand_idx in range(self.n_players):
-
-                playable_card_idx = np.where(np.sum(self.hands[next_player_rel_idx, ...]*playable_cards[np.newaxis, ...], axis=(1, 2)))[0][0]
-                if not np.empty(playable_card_idx):
-                    break
-
-            clue_idxs = np.where(np.sum(self.hands[next_player_rel_idx, :, clue_hint, :], axis=1))[0]
-            clue = (next_player_rel_idx, clue_type, clue_hint, clue_idxs)
-            action = ('clue', clue)
 
         return action
 
@@ -260,6 +270,7 @@ def get_useless_cards(table, discards):
     max_color_scores = get_max_color_scores(discards)
     for color_idx in range(util.N_COLORS):
         useless_cards[np.sum(table[:, color_idx]):max_color_scores[color_idx], color_idx] = 0
+    useless_cards[0, :] = 0
     return useless_cards
 
 

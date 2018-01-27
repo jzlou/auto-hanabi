@@ -50,7 +50,6 @@ def fulltable2string_short(hanabi):
             string += '{0: >2} '.format(hanabi.discards[number_idx, color_idx])
 
         string += '\n'
-    print(string)
     return string
 
 
@@ -99,17 +98,17 @@ def hanabi2str_short(hanabi):
 
 def color_clue2str(player_idx, card_idxs, clue_hint):
     if card_idxs.size > 1:
-        string = 'Player {}, cards {} are {}'.format(player_idx, card_idxs, util.COLORS[clue_hint])
+        string = 'Player {}, cards {} are {}'.format(player_idx, card_idxs, util.UNIQUE_COLORS[clue_hint])
     else:
-        string = 'Player {}, card {} is {}'.format(player_idx, card_idxs, util.COLORS[clue_hint])
+        string = 'Player {}, card {} is {}'.format(player_idx, card_idxs, util.UNIQUE_COLORS[clue_hint])
     return string
 
 
 def number_clue2str(player_idx, card_idxs, clue_hint):
     if card_idxs.size > 1:
-        string = 'Player {}, cards {} are {}s'.format(player_idx, card_idxs, util.NUMBERS[clue_hint])
+        string = 'Player {}, cards {} are {}s'.format(player_idx, card_idxs, util.UNIQUE_NUMBERS[clue_hint])
     else:
-        string = 'Player {}, card {} is a {}'.format(player_idx, card_idxs, util.NUMBERS[clue_hint])
+        string = 'Player {}, card {} is a {}'.format(player_idx, card_idxs, util.UNIQUE_NUMBERS[clue_hint])
     return string
 
 

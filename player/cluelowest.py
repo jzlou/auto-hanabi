@@ -3,7 +3,7 @@ import util
 import numpy as np
 
 
-class CluePlayableLeft:
+class ClueLowest:
     def __init__(self, n_players, n_handcards):
         r"""Initialize a player.
 
@@ -79,16 +79,11 @@ class CluePlayableLeft:
             card_idx = np.argmax(odds_useless)
             action = ('discard', card_idx)
             action_odds = odds_useless[card_idx]
-        if self.n_clues > 0:
-            # clue next player where a playable card is
+        if self.n_clues > 0 and action_odds < .5:
+            # clue next player where lowest value cards are
+            next_player_rel_idx = 0
             clue_hint = np.where(np.sum(self.hands[next_player_rel_idx, ...], axis=(0, 2)))[0][0]
             clue_type = 'number'
-            for hand_idx in range(self.n_players):
-
-                playable_card_idx = np.where(np.sum(self.hands[next_player_rel_idx, ...]*playable_cards[np.newaxis, ...], axis=(1, 2)))[0][0]
-                if not np.empty(playable_card_idx):
-                    break
-
             clue_idxs = np.where(np.sum(self.hands[next_player_rel_idx, :, clue_hint, :], axis=1))[0]
             clue = (next_player_rel_idx, clue_type, clue_hint, clue_idxs)
             action = ('clue', clue)

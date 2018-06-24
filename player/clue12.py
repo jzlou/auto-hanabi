@@ -3,7 +3,7 @@ import util
 import numpy as np
 
 
-class ClueOnes:
+class Clue12:
     def __init__(self, n_players, n_handcards):
         r"""Initialize a player.
 
@@ -88,6 +88,17 @@ class ClueOnes:
                 player_idx = np.where(np.sum(is_cluable_one, axis=1))[0][0]
                 clue_idxs = np.where(is_one[player_idx, ...])[0]
                 clue = (player_idx, clue_type, 0, clue_idxs)
+                action = ('clue', clue)
+                return action
+
+            is_two = np.sum(self.hands[:-1, ...], axis=3)[..., 1] > 0
+            is_known_two = np.sum(np.sum(self.clues_hands[:-1, ...], axis=3)[..., np.array([0, 2, 3, 4])], axis=2) == 0
+            is_cluable_two = np.logical_and(is_two, np.logical_not(is_known_two))
+            if np.any(is_cluable_two):
+                clue_type = 'number'
+                player_idx = np.where(np.sum(is_cluable_two, axis=1))[0][0]
+                clue_idxs = np.where(is_two[player_idx, ...])[0]
+                clue = (player_idx, clue_type, 1, clue_idxs)
                 action = ('clue', clue)
                 return action
 
@@ -270,7 +281,7 @@ def get_useless_cards(table, discards):
     max_color_scores = get_max_color_scores(discards)
     for color_idx in range(util.N_COLORS):
         useless_cards[np.sum(table[:, color_idx]):max_color_scores[color_idx], color_idx] = 0
-    useless_cards[1:, :] = 1
+    useless_cards[0, :] = 0
     return useless_cards
 
 

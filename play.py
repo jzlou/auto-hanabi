@@ -8,6 +8,7 @@ from player.clueones import ClueOnes
 from player.clue12 import Clue12
 from player.clueplayableleft import CluePlayableLeft
 from player.cluelowest import ClueLowest
+from player.cluekeying import ClueKeying
 import logging
 import sys
 import matplotlib.pyplot as plt
@@ -31,10 +32,10 @@ log.addHandler(ch)
 # still print to stdout
 # but also save output to log
 
-PlayerTypes = (PlayLeftBasic, ClueOnes, Clue12, ClueLowest)
-redo = np.array([False, True, True, False])
+PlayerTypes = (PlayLeftBasic, ClueOnes, Clue12, ClueLowest, ClueKeying)
+redo = np.array([True, True, True, True, True])
 N_types = len(PlayerTypes)
-N_trials = 2**8
+N_trials = 2**4
 scores = np.zeros((N_types, N_trials), dtype=int)
 hists = np.zeros((N_types, util.N_PLAYABLE+1))
 bins = np.arange(util.N_PLAYABLE+2) - .5

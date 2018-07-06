@@ -48,6 +48,17 @@ def card2info(card):
     return card_info
 
 
+def hand2cards(hand):
+    return [info2card(hand[idx, :]) for idx in range(hand.shape[0])]
+
+
+def info2card(info):
+    ind = np.unravel_index(np.argmax(info), info.shape)
+    number_idx = ind[0]
+    color_idx = ind[1]
+    return color_idx*N_CARDS_PER_COLOR + np.where(NUMBERS==UNIQUE_NUMBERS[number_idx])[0][0]
+
+
 def next_player(player_idx, n_players):
     return np.mod(player_idx + 1, n_players)
 

@@ -75,7 +75,11 @@ def hands2string_short(hanabi):
 
 
 def hand2string(hanabi, player_idx):
-    return '{0}: {1}'.format(player_idx, cards2string(np.flipud(hanabi.hands[player_idx, :])))
+    return '{0}: {1}'.format(player_idx, hand2string_basic(hanabi.hands[player_idx, :]))
+
+
+def hand2string_basic(hand):
+    return '{}'.format(cards2string(np.flipud(hand)))
 
 
 def hand2string_short(hanabi, player_idx):

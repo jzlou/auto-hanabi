@@ -8,6 +8,7 @@ from player.clueones import ClueOnes
 from player.clue12 import Clue12
 from player.clueplayableleft import CluePlayableLeft
 from player.cluelowest import ClueLowest
+from player.cluekeying import ClueKeying
 import logging
 import sys
 import matplotlib.pyplot as plt
@@ -31,7 +32,7 @@ log.addHandler(ch)
 # still print to stdout
 # but also save output to log
 
-PlayerTypes = (ClueOnes, Clue12, )
+PlayerTypes = (ClueKeying, )
 N_types = len(PlayerTypes)
 N_trials = 1
 scores = np.zeros((N_types, N_trials), dtype=int)

@@ -110,13 +110,16 @@ class Hanabi:
             logging.error('Invalid clue given: At least one card must be clued'.format(clue_hint, player_idx))
             return False
         if clue_type is 'color':
-            true_card_idxs = np.where(util.color_idx(self.hands[player_idx, :]) == clue_hint)[0]
+            true_card_idxs = np.where(util.color_idx(self.hands[player_idx, 0:self.n_cards[player_idx]]) == clue_hint)[0]
         elif clue_type is 'number':
-            true_card_idxs = np.where(util.number_idx(self.hands[player_idx, :]) == clue_hint)[0]
+            true_card_idxs = np.where(util.number_idx(self.hands[player_idx, 0:self.n_cards[player_idx]]) == clue_hint)[0]
         else:
             logging.error('Invalid clue type given ({})'.format(clue_type))
         if not np.array_equal(np.sort(card_idxs), np.sort(true_card_idxs)):
-            logging.error('Invalid clue given: Card indices ({}) do not match true card indices ({})'.format(clue_hint, player_idx))
+            logging.error('Invalid clue given: Card indices ({}) do not match true card indices ({})'.format(card_idxs, true_card_idxs))
+            logging.error('\t{}'.format(disp.clue2str(clue_type, player_idx, card_idxs, clue_hint)))
+            # TODO remove this
+            exit(0)
             return False
         return True
 

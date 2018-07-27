@@ -20,19 +20,18 @@ class ClueKeying:
             Number of cards in each players hand (before last round).
 
         """
-        self.n_handcards = n_handcards
         self.n_players = n_players
         self.curr_player_idx = None
         self.n_fuses = util.MAX_FUSES
         self.n_clues = util.MAX_CLUES
         self.n_undealt = util.N_CARDS
-        self.hands = np.tile(util.CARD_ZEROS[np.newaxis, np.newaxis, ...], (self.n_players, self.n_handcards, 1, 1))
+        self.hands = np.tile(util.CARD_ZEROS[np.newaxis, np.newaxis, ...], (self.n_players, n_handcards, 1, 1))
         self.clues_hands = np.tile(util.CARD_ONES[np.newaxis, np.newaxis, ...],
-                                   (self.n_players, self.n_handcards, 1, 1))
+                                   (self.n_players, n_handcards, 1, 1))
         self.info_hands = np.tile(util.CARD_ZEROS[np.newaxis, np.newaxis, ...],
-                                  (self.n_players, self.n_handcards, 1, 1))
+                                  (self.n_players, n_handcards, 1, 1))
         self.odds_hands = np.tile(util.CARD_ZEROS[np.newaxis, np.newaxis, ...],
-                                  (self.n_players, self.n_handcards, 1, 1))
+                                  (self.n_players, n_handcards, 1, 1))
         self.n_cards = np.zeros((self.n_players,), np.int)
         self.table = np.copy(util.CARD_ZEROS)
         self.discards = np.copy(util.CARD_ZEROS)
@@ -271,7 +270,7 @@ class ClueKeying:
         self.clues_hands[player_idx][self.n_cards[player_idx], ...] = util.CARD_ONES
         return
 
-    def rank_discardability(self, player_idx, communal_idxs = np.array([-1])):
+    def rank_discardability(self, , visible_hands):
 
         # get indices of visible hands
         hand_idxs = np.delete(np.arange(0, self.n_players), np.mod(communal_idxs, self.n_players))
@@ -308,9 +307,65 @@ class ClueKeying:
         # possible clues are in form (relative player_idx, number (0) or color (1), color/number idx)
         return possible_clues
 
-
     def exclude_idxs(self, idxs):
         return np.delete(np.arange(0, self.n_players), np.mod(idxs, self.n_players))
+
+    def order_hands(from_idx, to_idx, n_players):
+        hand_idxs = np.arange(n_players)
+        remaining_idxs = np.delete(hand_idxs, np.mod(hand_idxs, n_players))
+        ordered_idxs = (np.mod(np.sort(np.mod(remaining_idxs - from_idx, n_players)) + from_idx, n_players)).astype(
+            np.uint)
+        return ordered_idxs
+
+    def exclude_order_hands(self, exclude_idxs):
+        hand_idxs = exclude_order_idxs(exclude_idxs, self.n_players)
+        return self.hands[hand_idxs]
+
+
+def card_probs_from_clues(card_clues, visible_cards):
+    n_cards = card_clues.shape[0]
+    unknown_card = util.CARD_NOINFO - np.sum(visible_cards, 0)
+    card_probs = np.tile(unknown_card[np.newaxis, ...], (n_cards, 1, 1))
+    # I think this relies on the fact that clues apply to all held cards, whether positive or negative
+    # so this only works if card_info is from valid clues, not inferred or otherwise learned info
+    for ii in range(n_cards):
+        card_probs[ii] = norm_card(unknown_card*card_clues[ii])
+        unknown_card -= card_probs[ii]
+    return card_probs
+
+
+def rank_discardability(hand_info, visible_cards):
+
+    # get indices of visible hands
+    hand_idxs = np.delete(np.arange(0, self.n_players), np.mod(communal_idxs, self.n_players))
+    # all visible cards to communal players
+    visible_cards = self.table + self.discards + np.sum(self.hands[hand_idxs], (0, 1))
+    discardable_cards = get_discardable_cards(visible_cards)
+    hand_odds = norm_hand(util.CARD_NOINFO*self.clues_hands[player_idx, ...])
+    odds_discardable = np.sum(discardable_cards[np.newaxis, ...] * hand_odds, (2, 1))
+
+    return np.argsort(odds_discardable)
+
+def exclude_order_idxs(exclude_idxs, n_idxs):
+    r"""Order a set of indices with exclusions.
+
+    First exclude index is used as the "base" for ordering purposes. Results is indices [0 N) excluding exclude_idxs,
+    and ordered ascending from base index.
+
+    Parameters
+    ----------
+    exclude_idxs : np.array(int)
+        Indices to exclude. First element is the base index from which the remaining indices will be sorted mod ascending.
+    n_idxs : int
+        Number of indices.
+
+    """
+    base_idx = exclude_idxs[0]
+    hand_idxs = np.arange(n_idxs)
+    remaining_idxs = np.delete(hand_idxs, np.mod(exclude_idxs, n_idxs)) # exclude indices
+    # order mod ascending from base
+    ordered_idxs = (np.mod(np.sort(np.mod(remaining_idxs - base_idx, n_idxs)) + base_idx, n_idxs)).astype(np.uint)
+    return ordered_idxs
 
 def cards_possible(table, discards, hands):
     return util.CARD_NOINFO - table - discards - np.sum(hands, axis=(0, 1))
@@ -321,6 +376,13 @@ def norm_hand(hand):
     norm[np.where(norm == 0)[0]] = 1
     hand = hand / norm
     return hand
+
+
+def norm_card(card):
+    norm = np.sum(card)
+    norm = 1 if norm==0 else norm
+    card = card / norm
+    return card
 
 
 def get_playable_cards(table):

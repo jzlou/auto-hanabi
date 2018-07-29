@@ -124,26 +124,26 @@ probs = cond_prob(np.array([[1, 1, 1, 1], [0, 0, 1, 1], [0, 1, 0, 1], [0, 1, 1, 
 print(probs)
 
 
-# info = np.array([[1, 1, 1, 1], [1, 1, 0, 0], [0, 1, 1, 1], [0, 0, 0, 1]])
-# possibilities = np.array([1, 1, 1, 1])
-# probs = cond_prob(info, possibilities)
-#
-# print(probs)
-#
-# info = np.array([[0, 1, 1, 1], [1, 1, 0, 0], [0, 1, 1, 1], [0, 0, 0, 1]])
-# possibilities = np.array([1, 1, 1, 1])
-# probs = cond_prob(info, possibilities)
-#
-# print(probs)
-#
-# info = np.ones((5, 5, 5))
-# info[0] = 0
-# info[0, 4, :] = 1
-# possibilities = np.tile(np.array([3, 2, 2, 2, 1])[:, np.newaxis], (1, 5))
-# probs = cond_prob(info, possibilities)
-#
-# print(probs)
-#
+info = np.array([[1, 1, 1, 1], [1, 1, 0, 0], [0, 1, 1, 1], [0, 0, 0, 1]])
+possibilities = np.array([1, 1, 1, 1])
+probs = cond_prob(info, possibilities)
+
+print(probs)
+
+info = np.array([[0, 1, 1, 1], [1, 1, 0, 0], [0, 1, 1, 1], [0, 0, 0, 1]])
+possibilities = np.array([1, 1, 1, 1])
+probs = cond_prob(info, possibilities)
+
+print(probs)
+
+info = np.ones((5, 5, 5))
+info[0] = 0
+info[0, 4, :] = 1
+possibilities = np.tile(np.array([3, 2, 2, 2, 1])[:, np.newaxis], (1, 5))
+probs = cond_prob(info, possibilities)
+
+print(probs)
+
 info = np.ones((5, 5, 5))
 info[0] = 0
 info[0, 0, 0] = 1
@@ -157,25 +157,25 @@ possibilities = np.tile(np.array([3, 2, 2, 2, 1])[:, np.newaxis], (1, 5))
 probs = cond_prob(info, possibilities)
 
 print(probs)
-#
-# info = np.ones((5, 5, 5))
-# possibilities = np.tile(np.array([3, 2, 2, 2, 1])[:, np.newaxis], (1, 5))
-# probs = cond_prob(info, possibilities)
-#
-# print(probs)
-#
-# info = np.ones((4, 5, 5))
-# possibilities = np.tile(np.array([3, 2, 2, 2, 1])[:, np.newaxis], (1, 5))
-# probs = cond_prob(info, possibilities)
-#
-# print(probs)
 
-# info = np.ones((5, 5, 5))
-# info[:, 0, :] = 0
-# possibilities = np.tile(np.array([3, 2, 2, 2, 1])[:, np.newaxis], (1, 5))
-# probs = cond_prob(info, possibilities)
+info = np.ones((5, 5, 5))
+possibilities = np.tile(np.array([3, 2, 2, 2, 1])[:, np.newaxis], (1, 5))
+probs = cond_prob(info, possibilities)
 
-# print(probs)
+print(probs)
+
+info = np.ones((4, 5, 5))
+possibilities = np.tile(np.array([3, 2, 2, 2, 1])[:, np.newaxis], (1, 5))
+probs = cond_prob(info, possibilities)
+
+print(probs)
+
+info = np.ones((5, 5, 5))
+info[:, 0, :] = 0
+possibilities = np.tile(np.array([3, 2, 2, 2, 1])[:, np.newaxis], (1, 5))
+probs = cond_prob(info, possibilities)
+
+print(probs)
 end_time = time.process_time()
 
 print(end_time - start_time)

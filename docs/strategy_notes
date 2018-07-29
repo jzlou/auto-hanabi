@@ -1,0 +1,27 @@
+current player and player to his left calculate list of probabilites of cards based on:
+	clues publicly given to each of them (this might be hard, start with only clues given to player to the left)
+	cards played
+	cards discarded
+	cards in OTHER players' hands (not current player or cluing player)
+probabilities are calculated for each card in the player to the left's hand
+	% playable
+	% discardable
+rank the possible clues by change in entropy of information with every possible clue to the other players
+	ties broken by order of clue (based on color/number order defined by hanabi class)
+strat does not work for 2 player game
+with 3 people, min of 3 clues possible
+with 4 people, min of 6 clues possible
+with 5 people, min of 9 clues possible
+
+
+for 4 people, N possible clues:
+	if this is the last clue:
+		1 to 4 discard kth most probable card
+		5 to min(N, 9) play kth most probably card
+	if this is not the last clue:
+		1 to 4 play kth most probable card
+		5 punt/next player should give a clue
+		6 to min(N, 10) discard kth most probably card
+
+to break cycle of clue, play/discard, clue, play/discard...
+player just has to give player to his left a clue to play using the last clue available, and player two to the left must have highest prob card discardable (as agreed upon between last clue giver and player two to the left)

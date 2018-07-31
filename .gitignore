@@ -102,3 +102,6 @@ ENV/
 
 # PyCharm project files
 .idea/*
+
+# MATLAB
+*.m~

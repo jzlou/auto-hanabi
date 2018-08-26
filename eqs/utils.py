@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.misc as sm
 import time
+import itertools
 
 
 def nchoosek(n, k):
@@ -48,7 +49,7 @@ def C_lb_unirep_KleqR(rho, K):
 
 
 def C_ub_unirep_KleqR(rho, K):
-    return nmultichoosek(rho2U(rho), K)
+    return nmultichoosek(rho2N(rho), K)
 
 
 def C_lb_unirep(rho, K):
@@ -79,72 +80,67 @@ def C_for_unirep(rho, K):
 
 
 def C_rec_norep_rec(rho, K):
-    if not np.count_nonzero(rho):
-        return np.concatenate((np.array([1]), np.zeros((K, ))), 0)
 
     rmin = rho2rmin(rho)
     rho_new = np.copy(rho)
     rho_new[rmin - 1] -= 1
 
-    C = np.convolve(np.ones((rmin + 1, )), C_rec_norep_rec(rho_new, K), 'full')[:K + 1]
-    return C
+    if np.count_nonzero(rho_new):
+        return np.convolve(np.ones((rmin + 1, )), C_rec_norep_rec(rho_new, K), 'full')[:K + 1]
+    else:
+        return np.ones((rmin + 1, ))
 
 
 def C_rec_norep(rho, K):
     return C_rec_norep_rec(rho, K)[K]
 
 
-rho = np.array([5, 15, 5])
+def G_sum_start(n, k, w, j):
+    sum = 0
+    iter = list(itertools.combinations(np.arange(k), j))
+    for inds in np.array(iter):
+        sum += nchoosek(n - 1 - np.sum(w[inds]), k - 1)
 
-K = 4
+    return sum
 
-start = time.time()
-print(C_for_unirep(rho, K))
-end = time.time()
-print(end - start)
-start = time.time()
-print(C_rec_norep(rho, K))
-end = time.time()
-print(end - start)
-print(C_lb_norep(rho, K))
-print(C_ub_norep(rho, K))
-print(C_lb_unirep(rho, K))
-print(C_ub_unirep(rho, K))
 
-rho = np.array([5])
+def G(n, k, w):
+    sum = nchoosek(n - 1, k - 1)
+    for jj in np.arange(1, k):
+        sum += (-1)**jj * G_sum_start(n, k, w, jj)
+    return sum
 
-K = 4
 
-start = time.time()
-print(C_for_unirep(rho, K))
-end = time.time()
-print(end - start)
-start = time.time()
-print(C_rec_norep(rho, K))
-end = time.time()
-print(end - start)
-print(C_rec_norep(rho, K))
-print(C_lb_norep(rho, K))
-print(C_ub_norep(rho, K))
-print(C_lb_unirep(rho, K))
-print(C_ub_unirep(rho, K))
+def C_G(rho, K):
+    w = rho2rmin(rho)*np.ones((rho[rho2rmin(rho) - 1], ))
+    for rr in range(rho2rmin(rho), rho2R(rho)):
+        w = np.concatenate((w, (rr + 1)*np.ones((rho[rr], ))), 0)
+    return G(K + rho2U(rho), rho2U(rho), w + 1)
 
-rho = np.array([0, 0, 5])
 
-K = 3
+def print_perf(rho, K):
+    print(C_lb_norep(rho, K), C_ub_norep(rho, K))
+    print(C_lb_unirep(rho, K), C_ub_unirep(rho, K))
+    start = time.time()
+    result = C_rec_norep(rho, K)
+    end = time.time()
+    print(result, "(", end - start, ")")
+    start = time.time()
+    result = C_for_unirep(rho, K)
+    end = time.time()
+    print(result, "(", end - start, ")")
+    # start = time.time()
+    # result = C_G(rho, K)
+    # end = time.time()
+    # print(result, "(", end - start, ")")
+    return
 
-start = time.time()
-print(C_for_unirep(rho, K))
-end = time.time()
-print(end - start)
-start = time.time()
-print(C_rec_norep(rho, K))
-end = time.time()
-print(end - start)
-print(C_rec_norep(rho, K))
-print(C_lb_norep(rho, K))
-print(C_ub_norep(rho, K))
-print(C_lb_unirep_KleqR(rho, K))
-print(C_ub_unirep_KleqR(rho, K))
-print(C_lb_unirep(rho, K))
-print(C_ub_unirep(rho, K))
+print_perf(np.array([5, 15, 5]), 4)
+print_perf(np.array([6, 18, 6]), 20)
+print_perf(np.array([5, 10, 1, 4, 3, 1, 2, 1]), 7)
+print_perf(np.array([2, 2, 2]), 4)
+print_perf(np.array([5]), 4)
+print_perf(np.array([0, 0, 5]), 3)
+print_perf(np.array([0, 0, 0, 0, 0, 0, 10]), 3)
+print_perf(np.array([0, 0, 0, 13]), 5)
+print_perf(np.array([2, 0, 0, 0, 0, 0, 0, 0, 7]), 9)

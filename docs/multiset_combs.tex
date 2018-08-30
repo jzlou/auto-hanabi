@@ -4,18 +4,18 @@
 \usepackage{tikz,pgfplots,filecontents,amsmath}
 \pgfplotsset{compat=1.5}
 
-\begin{filecontents}{data.dat}
- n   xn 
- 0   1  
- 1   0  
- 2   0
- 3   0
- 4   0
- 5   0
- 6   0
- 7   0
- 8   0
-\end{filecontents}
+% \begin{filecontents}{data.dat}
+%  n   xn 
+%  0   1  
+%  1   0  
+%  2   0
+%  3   0
+%  4   0
+%  5   0
+%  6   0
+%  7   0
+%  8   0
+% \end{filecontents}
 
 \title{Counting Submultiset Combinations}
 \author{Charles Dunn}
@@ -30,10 +30,14 @@
 \usepackage{bbm}
 \usepackage{breqn}
 \usepackage{color}
+\usepackage{empheq} 
 
 \DeclareMathOperator*{\argmax}{arg\,max}
 \DeclareMathOperator*{\argmin}{arg\,min}
 \setcounter{MaxMatrixCols}{13}
+
+\newcommand{\boxedeq}[2]{\begin{empheq}[box={\fboxsep=6pt\fbox}]{align}\label{#1}#2\end{empheq}}
+
 
 \newcommand{\Conv}{\mathop{\scalebox{1.5}{\raisebox{-0.2ex}{$\ast$}}}}%
 
@@ -46,11 +50,11 @@
 
 Many games involve selecting a few items from a larger group. Examples include dealing hands from a deck in card games or selecting tiles in Scrabble. It is a common method of introducing randomness. To inform strategy or to formalize a process with random subset selection, it is useful to exhaustively count the number of combinations of a given number of items randomly selected from a group. Note that we are not considering the order of the selected items since games like Poker and Scrabble are agnostic to hand order; we are interested in the number of combinations, not the number of permutations.
 
-Formally, the purpose of this paper is to derive an analytical solution and implement a fast algorithm for $\bm{C}(\bm{m})[k]$, the number of combinations of $k$ items selected without replacement from the multiset $S$ with multiplicity $\bm{m}$. 
+Formally, the purpose of this paper is to derive an analytical solution and implement a fast algorithm for $C(S)[k]$, the number of combinations of $k$ items selected without replacement from the multiset $S$.
 
-It is worth noting that no constraints should be applied to $S$ in the final solution. The binomial coefficient (i.e. ``n choose k'') suffices as a solution to our problem only for sets without repeated elements\footnote{Sets do not account for repeated elements, while multisets can have multiple instances of the same type. Sets are a special case of multisets.}, but overcounts if there are any repeated (i.e. interchangeable) elements in $S$. An example of a set for which the binomial coefficient is sufficient is the standard deck of playing cards. One example of a multiset with repetition is the tiles in Scrabble, where there are twelve identical `E' tiles and various quantities of other tile types. Our desired solution for $\bm{C}(\bm{m})[k]$ will provide the correct value regardless of the structure of $S$.
+It is worth noting that no constraints should be applied to $S$ in the final solution. The binomial coefficient (i.e. ``n choose k'') suffices as a solution to our problem only for sets without repeated elements\footnote{Sets do not account for repeated elements, while multisets can have multiple instances of the same type. Sets are a special case of multisets.}, but overcounts if there are any repeated (i.e. interchangeable) elements in $S$. An example of a set for which the binomial coefficient is sufficient is the standard deck of playing cards. One example of a multiset with repetition is the tiles in Scrabble, where there are twelve identical `E' tiles and various quantities of other tile types. Our desired solution for $C(S)[\cdot]$ will provide the correct value regardless of the structure of $S$.
 
-In the conclusion, we will show the calculated values using our solution and implementation of $\bm{C}(\bm{m})[k]$ for the number of possible starting hands in Scrabble, Hanabi, and Mahjongg.
+In the examples section, we will use our solution and implementation to calculate values of $C(S)[k]$ for various $k$, including the number of possible starting hands, in the games of Scrabble, Hanabi, and Pit.
 
 \section{Formalization}
 
@@ -61,7 +65,7 @@ Let $S$ be the full multiset of $n$ items from which a submultiset will be selec
 \begin{equation}
     S = \{ s_1, s_2, ..., s_n\}
 \end{equation} 
-Let $A$ be the unique set of $u$ item types from which $S$ is constructed. This is the set of all possible item types. Every item in $S$ is in $A$ exactly once.
+Let $A$ be the unique set of $u$ item types from which $S$ is constructed. This is the set of all possible item types. Every item in $S$ is in $A$ exactly once, but the opposite is only true when $S$ has no repeated elements.
 \begin{equation}
     A = \{ a_1, a_2, ..., a_u\} = \bigcup_{s\in S} s
 \end{equation} 
@@ -84,11 +88,11 @@ We will use sub- and superscript notation to denote a range of $\bm{m}$. As an e
 
 \section{Analytical Solution}
 
-To restate our goal, we are looking for an analytical solution for $C(\bm{m})[k] \in \mathbb{Z}_{*}$, the count of combinations of $k \in \mathbb{Z}$ items selected without replacement from a multiset with multiplicity $\bm{m} \in \mathbb{Z}_{+}^u$ of $u$ unique item types.
+To restate our goal, we are looking for an analytical solution for $C(S)[k] \in \mathbb{Z}_{*}$, the count of combinations of $k \in \mathbb{Z}$ items selected without replacement from a multiset $S\in A^n$ with multiplicity $\bm{m} \in \mathbb{Z}_{+}^u$.
 
 \subsection{Preparation}
 
- We will use induction to solve for $C(\bm{m})[k]$, but we must first prove two things: how to solve for $C(\bm{m})[k]$ from the combination of two disjoint multisets, and how to segment a multiset into disjoint submultisets.
+ We will use induction to solve for $C(S)[\cdot]$, but we must first prove two things: how to solve for $C(S)[\cdot]$ from the combination of two disjoint multisets and how to segment a multiset into disjoint submultisets.
 
 
 % \begin{tikzpicture}
@@ -127,38 +131,38 @@ Let $S_p$ and $S_q$ be two disjoint multisets we combine to form multiset $S$. D
 
 As always, for any multiset $S_p$ we can derive the multiplicity $\bm{p}$, number of elements $n_p$, set of item types $A_p$, and number of item types $u_p$. The same notation holds for $S_q$.
 
-$C(\bm{m}_p)[\cdot]$ is the combination count function for $S_p$ and $C(\bm{m}_q)[\cdot]$ is the combination count function for $S_q$. We will solve for $C(\bm{m})[\cdot]$, the combination count function for $S$, in terms of the other two functions.
+$C(S_p)[\cdot]$ is the combination count function for $S_p$ and $C(S_q)[\cdot]$ is the combination count function for $S_q$. We will solve for $C(S)[\cdot]$, the combination count function for $S$, in terms of the other two functions.
 
-For each combination of $k$ items from $A$, $k_p \in [0, k]$ items are from $A_p$ and $k_q\in [0, k]$ items are from $A_q$. Furthermore, the sum of items selected from the two multisets must equal the total number of items selected.
+For each combination of $k$ items drawn from $S$, $k_p \in [0, k]$ items are from $S_p$ and $k_q\in [0, k]$ items are from $S_q$. Furthermore, the sum of items selected from the two multisets must equal the total number of items selected.
 \begin{equation}
     k = k_p + k_q
 \end{equation}
 
-$C(\bm{m}_p)[\cdot]$ and $C(\bm{m}_q)[\cdot]$ are independent organizations; for each combination of items from $S_p$ counted by $C(\bm{m}_p)[k_p]$, there are exactly $C(\bm{m}_q)[k_q]$ combinations of the remaining items from $S_q$. Therefore, for a given $k_p$, the count of combinations of $k$ items from $S$ is simply the product of the two known combination counts.
+$C(S_p)[\cdot]$ and $C(S_q)[\cdot]$ are independent organizations; for each combination of items from $S_p$ counted by $C(S_p)[k_p]$, there are exactly $C(S_q)[k_q]$ combinations of the remaining items from $S_q$. Therefore, for a given $k_p$, the count of combinations of $k$ items from $S$ is simply the product of the two known combination counts.
 \begin{equation}
-    C(\bm{m}; k_p)[k] = C(\bm{m}_p)[k_p] \cdot C(\bm{m}_q)[k_q] = C(\bm{m}_p)[k_p] \cdot C(\bm{m}_q)[k - k_p]
+    C(S; k_p)[k] = C(S_p)[k_p] \cdot C(S_q)[k_q] = C(S_p)[k_p] \cdot C(S_q)[k - k_p]
 \end{equation}
 
-For any combination of $k$ items, $k_p$ is at least $0$ and at most $k$. The sum of the above equation over all values of $k_1$ exactly counts all combinations of $k$ items.
+For any combination of $k$ items, $k_p$ is at least $0$ and at most $k$. The sum of the above equation over all values of $k_p$ exactly counts all combinations of $k$ items.
 \begin{equation}
-    C(\bm{m})[k] = \sum_{k_p = 0}^{k} C(\bm{m}; k_p)[k] = \sum_{k_p = 0}^{k} C(\bm{m}_p)[k_p] \cdot C(\bm{m}_q)[k - k_p]
+    C(S)[k] = \sum_{k_p = 0}^{k} C(S; k_p)[k] = \sum_{k_p = 0}^{k} C(S_p)[k_p] \cdot C(S_q)[k - k_p]
 \end{equation}
 
-$C(\bm{m})[k]=0$ for any $k<0$, since there is no way to ever select a negative number of items for a multiset. Since $C(\bm{m}_p)[k_p] = 0$ when $k_p < 0$ and $C(\bm{m}_q)[k - k_1] = 0$ when $k_p > k$, we can make the sum infinite without affecting the value.
+$C(S)[k]=0$ for any $k<0$, since there is no way to select a negative number of items from a multiset. Since $C(S_p)[k_p] = 0$ when $k_p < 0$ and $C(S_q)[k - k_p] = 0$ when $k_p > k$, we can make the sum infinite while maintaining equality.
 \begin{equation}
-    C(\bm{m})[k] = \sum_{k_p = -\infty}^{\infty} C(\bm{m}_p)[k_p] \cdot C(\bm{m}_q)[k - k_p]
+    C(S)[k] = \sum_{k_p = -\infty}^{\infty} C(S_p)[k_p] \cdot C(S_q)[k - k_p]
 \end{equation}
 
-This is the convolution of the two functions.
+This should look familiar, as it is the convolution of the two functions.
 \begin{equation}
-    C(\bm{m})[k] = (C(\bm{m}_p) * C(\bm{m}_q))[k]
+    C(S)[k] = (C(S_p) * C(S_q))[k]
 \end{equation}
 
 To summarize, we have proved that when joining two disjoint multisets, the resulting combination count is a convolution of the input combination counts.
 
 \subsubsection{Disjoint Submultiset Segmentation} \label{segment}
 
-The above result is only useful if we know how to create two disjoint submultisets from a multiset $S$. There are many ways to do this, but we will focus on creating a disjoint submultisets where one has only one item type. Specifically, let $S$ be the multiset with at least two item types for which we would like a combination count function. 
+The above result is only useful if we know how to create two disjoint submultisets from a multiset $S$. There are many ways to do this, but we will focus on creating two disjoint submultisets where one has only one item type. Specifically, let $S$ be the multiset with at least two item types for which we would like a combination count function. 
 \begin{equation}
     S = \{a_1^{m_1}, a_2^{m_2}, ... a_u^{m_u}\}
 \end{equation}
@@ -172,13 +176,13 @@ Let $S_p$ be the multiset containing all elements in $S$ of type $a_1$.
 \end{equation}
 
 Let $S_q$ be a multiset containing all the remaining elements of $S$.
-\begin{equation}
-    S_q = S \setminus S_p
+\begin{equation}\label{segment_eq2}
+    S_q = S \setminus S_p = \{a_2^{m_2}, a_3^{m_3}, ... a_u^{m_u}\}
 \end{equation}
 
 Obviously, multisets $S_p$ and $S_q$ are disjoint, but their union covers the entire original set $S$.
 
-The multiplicities of the resulting sets are easily defined. Let $\bm{p}$ and $\bm{q}$ be the respective multiplicities of multisets $S_p$ and $S_q$. $\bm{p}$ is just the first element of $\bm{m}$, which should be obvious from equation \ref{segment_eq1}. $\bm{q}$ is simply the remaining elements.
+The multiplicities of the resulting sets are easily defined. Let $\bm{p}$ and $\bm{q}$ be the respective multiplicities of multisets $S_p$ and $S_q$. $\bm{p}$ is just the first element of $\bm{m}$, which should be obvious from equation \ref{segment_eq1}. $\bm{q}$ is simply the remaining elements, as shown by equation \ref{segment_eq2}.
 \begin{equation}
     \bm{p} = [m_1]
 \end{equation}
@@ -186,14 +190,11 @@ The multiplicities of the resulting sets are easily defined. Let $\bm{p}$ and $\
     \bm{q} = \bm{m}_2^u
 \end{equation}
 
-Therefore, $\bm{m}$ is just the concatenation of $\bm{p}$ and $\bm{q}$.
-\begin{equation}
-    \bm{m} = [\bm{p}, \bm{q}]
-\end{equation}
+We have shown how to create two disjoint submultisets that together contain all the elements of an original multiset. In the previous section, we showed how to combine the combination counting functions for such disjoint multisets. Recursion ahoy!
 
 \subsection{Proof by Induction}
 
-We can now demonstrate through inductive reasoning how to define a recursive solution for $C(\bm{m})[\cdot]$ for any multiset $S$.
+We can now demonstrate through inductive reasoning how to define a recursive solution for $C(S)[\cdot]$ for any multiset $S$.
 
 \subsubsection{Base Case}
 
@@ -201,42 +202,42 @@ As with any proof by induction, we start with base cases, one of them trivial.
 
 If multiset $S$ is empty, there is exactly one combination of zero items that can be selected from it, and zero combinations of any other number of items. If $S$ is empty, $n=0$ and $u=0$.
 \begin{equation}
-    C(\bm{m})[k] = \delta_0[k] = \begin{cases}1 & k = 0 \\ 0 & \text{else}  \end{cases} \text{ if } u=0
+    C(S)[k] = \delta_0[k] = \begin{cases}1 & k = 0 \\ 0 & \text{else}  \end{cases} \text{ if } u=0
 \end{equation}
 
 For reasons that will be obvious soon, we can express this case in terms of a rectangular function of width $n=0$.
 \begin{equation}
-    C(\bm{m})[k] = \delta_0[k] = \Pi_n[k] \text{ if } u=0
+    C(S)[k] = \delta_0[k] = \Pi_n[k] \text{ if } u=0
 \end{equation}
 
 The second trivial case is where $S$ has only one item type, so $u=1$. This is equivalent to $\bm{m}$ having only one element. Since $n$ is the number of items in the multiset, if $\bm{m}$ has only one element, it must be $n$. This simplicity means counting the possible combinations is relatively clear. If the entire multiset of $n$ items is composed of identical items, then there is exactly one combination of $k$ items if $k \leq n$ and exactly zero combinations otherwise.
 \begin{equation}
-    C(\bm{m})[k] = \Pi_n[k] = \begin{cases}1 & 0 \leq k \leq n \\ 0 & \text{else}  \end{cases}\text{ if } u = 1
+    C(S)[k] = \Pi_n[k] = \begin{cases}1 & 0 \leq k \leq n \\ 0 & \text{else}  \end{cases}\text{ if } u = 1
 \end{equation}
 
-In both cases, when $S$ has zero or one item type, our solution for $C(\bm{m})[k]$ is the same, so we can combine them.
+In both cases, when $S$ has zero or one item type, our solution for $C(S)[k]$ is the same, so we can combine them.
 \begin{equation}
-    C(\bm{m})[k] = \Pi_n[k] = \begin{cases}1 & 0 \leq k \leq n \\ 0 & \text{else}  \end{cases}\text{ if } u\leq 1
+    C(S)[k] = \Pi_n[k] = \begin{cases}1 & 0 \leq k \leq n \\ 0 & \text{else}  \end{cases}\text{ if } u\leq 1
 \end{equation}
 
 \subsubsection{Inductive Step}
 
 In all other cases, $S$ has at least two item types, and $\bm{m}$ has at least two elements. When this is the case, we can always break up $S$ into two disjoint submultisets, as shown in section \ref{segment}, and recombine their combination counting functions, as shown in section \ref{union}.
 \begin{equation}
-    C(\bm{m})[k] = (C([m_1]) * C(\bm{m}_2^u))[k]\text{ if } u>1
+    C(S)[k] = (C([m_1]) * C(S_2^u))[k]\text{ if } u>1
 \end{equation}
 
 \subsubsection{Recursive Solution}
 
-We can now recursively define $C(\bm{m})[k]$ since we have a base case and an inductive step.
+We can now recursively define $C(S)[k]$ since we have a base case and an inductive step.
 \begin{equation}
-    C(\bm{m})[k] = \begin{cases}\Pi_n[k] & u \leq 1 \\
-    (C([m_1]) * C(\bm{m}_2^u))[k] & \text{else} \end{cases}
+    C(S)[k] = \begin{cases}\Pi_n[k] & u \leq 1 \\
+    (C([m_1]) * C(S_2^u))[k] & \text{else} \end{cases}
 \end{equation}
 
 Note that we actually solved for the function regardless of $k$. This has implications for optimization when we implement the solution. \begin{equation} \label{rec}
-    C(\bm{m}) = \begin{cases}\Pi_n & u \leq 1 \\
-    C([m_1]) * C(\bm{m}_2^u) & \text{else} \end{cases}
+    C(S) = \begin{cases}\Pi_n & u \leq 1 \\
+    C([m_1]) * C(S_2^u) & \text{else} \end{cases}
 \end{equation}
 
 We have our first version of an analytical solution for the number of combinations of items from a multiset!
@@ -252,26 +253,25 @@ In the special case that $N=1$, we will just get the first function back.\footno
     \Conv_{i=1}^1 f_i = f_1
 \end{equation}
 
-If we perpetually replace the recursive parts of our previous solution, we arrive at a rather elegant one. The first part of the convolution in (\ref{rec}) is simply a rectangular function since it meets the condition that $u\leq 1$. The second will once again split the first element of $\bm{m}_2^u$ off from the rest.\footnote{This is not rigorous since have not constrained $u$ to be at least 3, but it is conceptually sound.} With one step down the recursion tree, we get the following.
+If we perpetually replace the recursive parts of our previous solution, we arrive at a rather elegant one. The first part of the convolution in (\ref{rec}) is simply a rectangular function since it meets the condition that $u\leq 1$. The second will once again split the first element of $\bm{m}_2^u$ off from the rest. With one step down the recursion tree, we get the following.
 \begin{equation}
-    C(\bm{m}) = \begin{cases}\Pi_n & u \leq 1 \\
-    \Pi_{m_1} * (C([m_2]) * C(\bm{m}_3^u)) & \text{else} \end{cases}
+    C(S) = \begin{cases}\Pi_n & u \leq 1 \\
+    \Pi_{m_1} * (C([m_2]) * C(S_3^u)) & \text{else} \end{cases}
 \end{equation}
 It should now be clear that after repeated applications, we arrive at a long chain of convolved rectangular functions.
 \begin{equation}
-    C(\bm{m}) = \begin{cases}\Pi_n & u \leq 1 \\
+    C(S) = \begin{cases}\Pi_n & u \leq 1 \\
     \Pi_{m_1} * (\Pi_{m_1} * (... * \Pi_{m_u})...)) & \text{else} \end{cases}
 \end{equation}
 Convolution is a linear operation is therefore associative.
 \begin{equation}
-    C(\bm{m}) = \begin{cases}\Pi_n & u \leq 1 \\
+    C(S) = \begin{cases}\Pi_n & u \leq 1 \\
     \Pi_{m_1} * \Pi_{m_1} * ... * \Pi_{m_u} & \text{else} \end{cases}
 \end{equation}
 We can now apply our convenient notation, and revel in the fact that both cases collapse to one.
-\begin{equation}
-    C(\bm{m}) = \Conv_{i=1}^u \Pi_{m_i}
-\end{equation}
-This is a magnificently elegant analytical solution to a potentially ugly problem. It means that for any multiset with $u$ item types, regardless of its structure, we can solve for the number of combinations of any number of items simply by doing $u-1$ convolutions of $u$ rectangular functions.
+\boxedeq{eq:first}{C(S) = \Conv_{i=1}^{|\bm{m}|} \Pi_{m_i}}
+
+This is a magnificently elegant analytical solution to a potentially ugly problem. It means that for any multiset $S$, regardless of its structure, we can solve for the number of combinations of any number of items simply by doing $u-1$ convolutions of $u$ rectangular functions. Note also that the number of combinations depends exclusively on the multiplicity of $S$.
 
 \section{Implementation}
 
@@ -301,11 +301,7 @@ This is a magnificently elegant analytical solution to a potentially ugly proble
 \end{equation}
 
 \begin{equation}\nonumber
-    r_{\max} = 12
-\end{equation}
-
-\begin{equation}\nonumber
-    \bm{\rho} = [5, 10, 1, 4, 0, 3, 0, 1, 2, 0, 0, 1]
+    \bm{m} = [9, 2, 2, 4, 12, 2, 3, 2, 9, 1, 1, 4, 2, 6, 8, 2, 1, 6, 4, 6, 4, 2, 2, 1, 2, 1, 2]
 \end{equation}
 
 \subsection{Hanabi}
@@ -331,11 +327,45 @@ This is a magnificently elegant analytical solution to a potentially ugly proble
 \end{equation}
 
 \begin{equation}\nonumber
-    r_{\max} = 3
+    \bm{m} = [3, 2, 2, 2, 1, 3, 2, 2, 2, 1, 3, 2, 2, 2, 1, 3, 2, 2, 2, 1, 3, 2, 2, 2, 1 ]
 \end{equation}
 
+\pagebreak
+\section{Appendix}
+\subsection{Notation}
+\subsubsection{Multisets}
+
+Multisets are a more general class of sets that allow for repeated elements. Sets are a subclass of multisets, so all notation for multisets also applies to sets. Both are agnostic to the ordering of elements.
+
+Multisets are defined by curly brackets with comma separated elements that list component items. Multiset $S$ is composed of elements $a$, $a$, $b$, and $a$ in the following example.
 \begin{equation}\nonumber
-    \bm{\rho} = [5, 15, 3]
+    S = \{a, a, b, a\}
+\end{equation}
+For shorthand, we can denote repeated elements with a superscript.
+\begin{equation}\nonumber
+    S = \{a^3, b^1\}
+\end{equation}
+The size or cardinality of a multiset is denoted by $|\cdot|$.
+\begin{equation}\nonumber
+    |S| = 4
+\end{equation}
+The empty multiset is denoted by $\varnothing$.
+
+We use a few multiset operations, including multiset union, set union, intersection, and difference. The multiset union combines multisets and retains repeated copies within and among the input sets.
+\begin{equation}\nonumber
+    \{a, a, b, a, a, c\} = \{a, a, b, a\} \uplus \{a, c\}
+\end{equation}
+The more well-known set union combines multisets but only considers unique elements.
+\begin{equation}\nonumber
+    \{a, b, c\} = \{a, a, b, a\} \cup \{a, c\}
+\end{equation}
+Multiset intersection outputs only items that appear in both multisets.
+\begin{equation}\nonumber
+    \{a\} = \{a, a, b, a\} \cap \{a, c\}
+\end{equation}
+Finally, the multiset difference operator outputs all elements of a set that are not included in a second set.
+\begin{equation}\nonumber
+    \{a, b, a\} = \{a, a, b, a\} \setminus \{a, c\}
 \end{equation}
 
 \bibliographystyle{plain}
